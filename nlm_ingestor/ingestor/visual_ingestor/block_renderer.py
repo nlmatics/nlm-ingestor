@@ -255,6 +255,12 @@ class BlockRenderer:
                     "page_idx": block["page_idx"],
                     "block_class": block["block_class"],
                     "sentences": [block_text],
+                    "bbox": [
+                        block["box_style"][1],
+                        block["box_style"][0],
+                        block["box_style"][1] + block["box_style"][3],
+                        block["box_style"][0] + block["box_style"][4],
+                    ]                   
                 }
             elif block_type == "list_item" and not is_rendering_table:
                 block_dict = self.render_nested_block_as_dict(block, "list_item")
@@ -266,6 +272,12 @@ class BlockRenderer:
                     "page_idx": block["page_idx"],
                     "block_class": block["block_class"],
                     "sentences": [block_text],
+                    "bbox": [
+                        block["box_style"][1],
+                        block["box_style"][0],
+                        block["box_style"][1] + block["box_style"][3],
+                        block["box_style"][0] + block["box_style"][4],
+                    ]                   
                 }
 
             if block_dict:
@@ -329,7 +341,14 @@ class BlockRenderer:
 
             if 'is_table_end' in block:
                 is_rendering_table = False
-                render_dict["blocks"][-1]["table_rows"] = table_rows
+                table_block = render_dict["blocks"][-1] 
+                table_block["table_rows"] = table_rows
+                table_block["bbox"] = [
+                        table_block["left"],
+                        table_block["top"],
+                        table_block["left"] + block["box_style"][3],
+                        table_block["top"] + block["box_style"][4],
+                    ]                   
                 table_rows = []
 
         return render_dict
@@ -349,6 +368,12 @@ class BlockRenderer:
                 "block_class": block["block_class"],
                 "sentences": [sent for sent in block["block_sents"]],
                 "block_idx": block["block_idx"],
+                "bbox": [
+                    block["box_style"][1],
+                    block["box_style"][0],
+                    block["box_style"][1] + block["box_style"][3],
+                    block["box_style"][0] + block["box_style"][4],
+                ]
             }
         return block_dict
 

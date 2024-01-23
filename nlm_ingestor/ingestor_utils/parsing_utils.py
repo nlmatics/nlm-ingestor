@@ -131,7 +131,7 @@ def format_to_tr_block(prev_block, gap_threshold):
         child_x1 = child['box_style'][1]
 
         if gap_threshold <= round(child_x1 - prev_child_x2):
-            new_child_block = ingestor.visual_ingestor.Doc.merge_vls(block_buff)
+            new_child_block = nlm_ingestor.ingestor.visual_ingestor.Doc.merge_vls(block_buff)
             new_visual_lines.append(new_child_block)
             new_block_children.append({"text": block_text,
                                        "centroid": get_centroid(block_buff[0]['box_style'][1],
@@ -152,7 +152,7 @@ def format_to_tr_block(prev_block, gap_threshold):
                                                                 block_buff[-1]['box_style'][2]),
                                        "span": (prev_child['box_style'][1], child['box_style'][2])
                                        })
-            new_child_block = ingestor.visual_ingestor.Doc.merge_vls(block_buff)
+            new_child_block = nlm_ingestor.ingestor.visual_ingestor.Doc.merge_vls(block_buff)
             new_visual_lines.append(new_child_block)
     return new_block_children, new_visual_lines
 

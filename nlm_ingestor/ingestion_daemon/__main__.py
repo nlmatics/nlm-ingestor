@@ -64,7 +64,7 @@ def parse_document(
     return make_response(jsonify({"status": status, "reason": msg}), rc)
 
 def main():
-    logger.info("Starting parser service..")
+    logger.info("Starting ingestor service..")
     app.run(host="0.0.0.0", port=5001, debug=False)
 
 

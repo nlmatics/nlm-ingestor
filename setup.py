@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name='nlm-ingestor',
-    version='0.1.1',    
+    version='0.1.2',    
     description='Parsers and ingestors for different file types and formats',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
@@ -11,7 +11,7 @@ setup(
     license='Apache License 2.0',
     packages=find_packages(),
     include_package_data=True,
-    package_data={'': ['ingestor_utils/*.txt']},
+    package_data={'': ['ingestor_utils/*.txt', ]},
     install_requires=[
         "flask",
         "flask_restful",

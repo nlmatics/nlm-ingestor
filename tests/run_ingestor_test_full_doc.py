@@ -10,8 +10,8 @@ from nlm_utils.storage import file_storage
 from pymongo import MongoClient
 from tika import parser
 
-from ingestor import table_parser
-from ingestor import visual_ingestor
+from nlm_ingestor.ingestor import table_parser
+from nlm_ingestor.ingestor import visual_ingestor
 
 db_client = MongoClient(os.getenv("MONGO_HOST", "localhost"))
 db = db_client[os.getenv("MONGO_DATABASE", "doc-store-dev")]
