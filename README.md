@@ -1,8 +1,9 @@
 # About
 
-This repo provides the service code llmsherpa API to connect. This repo contains parsers for the following file formats:
+This repo provides the service code for llmsherpa API to connect. 
+This repo contains custom RAG (retrieval augmented generation) friendly parsers for the following file formats:
 ### PDF
-The PDF parser is a rule based parser which uses text co-ordinates (boundary box) data from nlmatics modified version of tika found here https://github.com/nlmatics/nlm-tika.
+The PDF parser is a rule based parser which uses text co-ordinates (boundary box), graphics and font data from nlmatics modified version of tika found here https://github.com/nlmatics/nlm-tika.
 The PDF parser works off text layer and also offers a OCR option (apply_ocr) to automatically use OCR if there are scanned pages in your PDFs. The OCR feature is based off a nlmatics modified version of tika which uses tesseract underneath.
 Check out the notebook [pdf_visual_ingestor_step_by_step](notebooks/pdf_visual_ingestor_step_by_step.ipynb) to experiment directly with the PDF parser.
 
@@ -18,15 +19,15 @@ The PDF Parser offers the following features:
     10. OCR with boundary boxes
 
 ### HTML
-A special HTML parser that creates layout aware blocks that makes RAG performance better. 
+A special HTML parser that creates layout aware blocks to make RAG performance better with higher quality chunks. 
 ### Text
-A special text parser which tries to figure out lists, tables, headers etc. purely by looking at the text. 
+A special text parser which tries to figure out lists, tables, headers etc. purely by looking at the text and no visual, font or bbox information.
 ### DOCX, PPTX and any other format supported by Apache Tika
 There are two ways to process these types of documents
 - html output from tika for these file types is used and parsed by the html parser
 
 ## Nlm Modified Tika
-Nlm modified version of Tika can be found here https://github.com/nlmatics/nlm-tika
+Nlm modified version of Tika can be found in the 2.4.1-nlm branch here https://github.com/nlmatics/nlm-tika/tree/2.4.1-nlm
 For convenience, a compiled jar file of the code is included in this repo in jars/ folder.
 In some cases, your PDFs may result in errors in the Java server and you will need to modify the code there to resolve the issue and recompile the jar file.
 
@@ -46,7 +47,12 @@ In some cases, your PDFs may result in errors in the Java server and you will ne
 python -m nlm_ingestor.ingestion_daemon
 ```
 ### Run the docker file
+A docker image is available via github container registry. Before running the following code, you may need to authenticate with docker first
+cat ~/TOKEN.txt | docker login https://ghcr.io -u USERNAME --password-stdin
+where TOKEN.txt is the token you create as described here: https://docs.github.com/en/enterprise-server@3.7/packages/working-with-a-github-packages-registry/working-with-the-docker-registry
+
 ```
+docker pull ghcr.io/nlmatics/nlm-ingestor:latest
 docker run nlm-ingestor-<version>
 ```
 ### Test the ingestor server
