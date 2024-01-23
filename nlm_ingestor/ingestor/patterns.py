@@ -1,0 +1,170 @@
+import re
+
+# end_break = re.compile("[a-z0-9\-,%;\) ]$")
+end_break = re.compile(r"[^\.] ?$")
+begin_break = re.compile(r"[a-zA-Z\(]")
+money = re.compile(r"\$?-?[0-9]+\.?[0-9]?\%?")
+number = re.compile(r"[0-9]+\.?[0-9]?")
+money2 = re.compile(r"^\$?(\d*(\d\.?|\.\d{1,2}))$")
+money_regex = re.compile(r"\$?[0-9,]+\.?[0-9]{1,2}%?")
+year = re.compile(r"^(19|20)\d{2}$")
+num_unit = re.compile("[0-9]+([a-zA-Z’]+)")
+spell_check = [
+    r"[0-9]{1,2}\.?",
+    r"[a-z]?\.",
+    r"[ivx]{1,3}\.",
+    r"\(?[a-z]?\)",
+    r"[ivx]{1,3}\) ",
+]
+ignore_regex = re.compile("|".join(spell_check))
+first_letters = ["(", '"', "'", "{", "["]
+last_letters = [")", '"', "'", ";", ":", ",", "?", "!", "}", "]", "."]
+address = r"[0-9]{1,5}[A-Za-z\,\s]+[\,\s]+[0-9]{0,5}"
+repetitive_words = r"([a-zA-Z ]+) (\1) (\1)"  #
+space_d_numbers = r"\d[\d+\$\.\%\s]+\,*\d+\%*\,*\.*\s"
+old_section_patterns = [
+    re.compile("[0-9]{1,2} [A-Za-z]+", flags=re.IGNORECASE),
+    re.compile("[0-9]{1,2} [A-Za-z]+", flags=re.IGNORECASE),
+    re.compile("Section", flags=re.IGNORECASE),
+    re.compile("Article", flags=re.IGNORECASE),
+    re.compile(r"[0-9]{1,2}\.[0-9]*$", flags=re.IGNORECASE),
+]
+
+section_patterns = [
+    re.compile("Section", flags=re.IGNORECASE),
+    re.compile("Article", flags=re.IGNORECASE),
+]
+
+states = {
+    "alaska",
+    "alabama",
+    "arkansas",
+    "american samoa",
+    "arizona",
+    "california",
+    "colorado",
+    "connecticut",
+    "district of columbia",
+    "delaware",
+    "florida",
+    "georgia",
+    "guam",
+    "hawaii",
+    "iowa",
+    "idaho",
+    "illinois",
+    "indiana",
+    "kansas",
+    "kentucky",
+    "louisiana",
+    "massachusetts",
+    "maryland",
+    "maine",
+    "michigan",
+    "minnesota",
+    "missouri",
+    "mississippi",
+    "montana",
+    "north carolina",
+    "north dakota",
+    "nebraska",
+    "new hampshire",
+    "new jersey",
+    "new mexico",
+    "nevada",
+    "new york",
+    "ohio",
+    "oklahoma",
+    "oregon",
+    "pennsylvania",
+    "puerto rico",
+    "rhode island",
+    "south carolina",
+    "south dakota",
+    "tennessee",
+    "texas",
+    "utah",
+    "virginia",
+    "virgin islands",
+    "vermont",
+    "washington",
+    "wisconsin",
+    "west virginia",
+    "wyoming",
+    "new",
+    "north",
+    "south",
+    "rhode",
+}
+
+states_abbreviations = {
+    "ak",
+    "al",
+    "ar",
+    "as",
+    "az",
+    "ca",
+    "co",
+    "ct",
+    "dc",
+    "de",
+    "fl",
+    "ga",
+    "gu",
+    "hi",
+    "ia",
+    "id",
+    "il",
+    "in",
+    "ks",
+    "ky",
+    "la",
+    "ma",
+    "md",
+    "me",
+    "mi",
+    "mn",
+    "mo",
+    "ms",
+    "mt",
+    "nc",
+    "nd",
+    "ne",
+    "nh",
+    "nj",
+    "nm",
+    "nv",
+    "ny",
+    "oh",
+    "ok",
+    "or",
+    "pa",
+    "pr",
+    "ri",
+    "sc",
+    "sd",
+    "tn",
+    "tx",
+    "ut",
+    "va",
+    "vi",
+    "vt",
+    "wa",
+    "wi",
+    "wv",
+    "wy",
+}
+
+abbreviations = {
+    "corp.",
+    "inc.",
+    "ltd.",
+    "st.",
+    "blvd.",
+    "ct.",
+    "mr.",
+    "mrs.",
+    "pte.",
+    "llc.",
+    "co.",
+}
