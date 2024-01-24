@@ -1,6 +1,6 @@
 # About
 
-This repo provides the service code for llmsherpa API to connect. 
+This repo provides the service code for [llmsherpa](https://github.com/nlmatics/llmsherpa) API to connect. 
 This repo contains custom RAG (retrieval augmented generation) friendly parsers for the following file formats:
 ### PDF
 The PDF parser is a rule based parser which uses text co-ordinates (boundary box), graphics and font data from nlmatics modified version of tika found here https://github.com/nlmatics/nlm-tika.
