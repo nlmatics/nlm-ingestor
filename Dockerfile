@@ -5,10 +5,22 @@ ENV APP_HOME /app
 # install Java
 RUN mkdir -p /usr/share/man/man1 && \
     apt-get update -y && \
-    apt-get install -y openjdk-17-jre-headless && \
-    apt-get install -y libxml2-dev && \
-    apt-get install -y libxslt-dev && \
-    apt-get install -y build-essential
+    apt-get install -y openjdk-17-jre-headless
+# install essential packages
+RUN apt-get install -y \
+    libxml2-dev libxslt-dev \
+    build-essential libmagic-dev
+# install tesseract
+RUN apt-get install -y \
+    tesseract-ocr \
+    lsb-release \
+    && echo "deb https://notesalexp.org/tesseract-ocr5/$(lsb_release -cs)/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/notesalexp.list > /dev/null \
+    && apt-get update -oAcquire::AllowInsecureRepositories=true \
+    && apt-get install notesalexp-keyring -oAcquire::AllowInsecureRepositories=true -y --allow-unauthenticated \
+    && apt-get update \
+    && apt-get install -y \
+    tesseract-ocr libtesseract-dev \
+    && wget -P /usr/share/tesseract-ocr/5/tessdata/ https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata
 RUN apt-get install unzip -y && \
     apt-get install git -y && \
     apt-get autoremove -y

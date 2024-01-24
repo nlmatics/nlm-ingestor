@@ -20,15 +20,17 @@ def parse_document(
     render_format: str = "all",
 ):
     render_format = request.args.get('renderFormat', 'all')
-    use_new_indent_parser = request.args.get('useNewIndentParser', 'all')
+    use_new_indent_parser = request.args.get('useNewIndentParser', 'no')
+    apply_ocr = request.args.get('applyOcr', 'no')
     file = request.files['file']
     tmp_file = None
     try:
         parse_options = {
             "parse_and_render_only": True,
             "render_format": render_format,
-            "use_new_indent_parser": use_new_indent_parser,
-            "parse_pages": ()
+            "use_new_indent_parser": use_new_indent_parser == "yes",
+            "parse_pages": (),
+            "apply_ocr": apply_ocr == "yes"
         }
         # save the incoming file to a temporary location
         filename = secure_filename(file.filename)
@@ -52,6 +54,7 @@ def parse_document(
         )
 
     except Exception as e:
+        print("error uploading file, stacktrace: ", traceback.format_exc())
         logger.error(
             f"error uploading file, stacktrace: {traceback.format_exc()}",
             exc_info=True,
@@ -65,8 +68,7 @@ def parse_document(
 
 def main():
     logger.info("Starting ingestor service..")
-    app.run(host="0.0.0.0", port=5001, debug=False)
-
+    app.run(host="0.0.0.0", port=5001, debug=True)
 
 if __name__ == "__main__":
     main()

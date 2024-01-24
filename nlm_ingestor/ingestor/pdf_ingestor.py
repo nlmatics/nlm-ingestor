@@ -7,12 +7,9 @@ from typing import Optional
 
 from bs4 import BeautifulSoup
 
-from . import table_builder
 from nlm_ingestor.file_parser import pdf_file_parser
 from timeit import default_timer
-from .visual_ingestor import table_parser
 from .visual_ingestor import visual_ingestor
-from nlm_ingestor.ingestor.visual_ingestor import block_renderer
 from nlm_ingestor.ingestor.visual_ingestor.new_indent_parser import NewIndentParser
 from nlm_ingestor.ingestor_utils.utils import NpEncoder, \
     detect_block_center_aligned, detect_block_center_of_page

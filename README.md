@@ -8,15 +8,16 @@ The PDF parser works off text layer and also offers a OCR option (apply_ocr) to 
 Check out the notebook [pdf_visual_ingestor_step_by_step](notebooks/pdf_visual_ingestor_step_by_step.ipynb) to experiment directly with the PDF parser.
 
 The PDF Parser offers the following features:
-    1. Sections and subsections along with their levels.
-    2. Paragraphs - combines lines.
-    3. Links between sections and paragraphs.
-    5. Tables along with the section the tables are found in.
-    6. Lists and nested lists.
-    7. Join content spread across pages.
-    8. Removal of repeating headers and footers.
-    9. Watermark removal.
-    10. OCR with boundary boxes
+
+1. Sections and subsections along with their levels.
+2. Paragraphs - combines lines.
+3. Links between sections and paragraphs.
+5. Tables along with the section the tables are found in.
+6. Lists and nested lists.
+7. Join content spread across pages.
+8. Removal of repeating headers and footers.
+9. Watermark removal.
+10. OCR with boundary boxes
 
 ### HTML
 A special HTML parser that creates layout aware blocks to make RAG performance better with higher quality chunks. 
@@ -47,14 +48,22 @@ In some cases, your PDFs may result in errors in the Java server and you will ne
 python -m nlm_ingestor.ingestion_daemon
 ```
 ### Run the docker file
-A docker image is available via github container registry. Before running the following code, you may need to authenticate with docker first
-cat ~/TOKEN.txt | docker login https://ghcr.io -u USERNAME --password-stdin
-where TOKEN.txt is the token you create as described here: https://docs.github.com/en/enterprise-server@3.7/packages/working-with-a-github-packages-registry/working-with-the-docker-registry
+A docker image is available via public github container registry. 
 
+Pull the docker image
 ```
 docker pull ghcr.io/nlmatics/nlm-ingestor:latest
-docker run nlm-ingestor-<version>
 ```
+Run the docker image mapping the port 5001 to port of your choice. 
+```
+docker run -p 5010:5001 ghcr.io/nlmatics/nlm-ingestor:latest-<version>
+```
+Once you have the server running, your llmsherpa url will be:
+"http://localhost:5010/api/parseDocument?renderFormat=all"
+- to apply OCR add &applyOcr=yes
+- to use the new indent parser which uses a different alogrithm to assign header levels, add &useNewIndentParser=yes
+- this server is good for your development - in production it is recommended to run this behind a secure gateway using nginx or cloud gateways
+
 ### Test the ingestor server
 Sample test code to test the server with llmsherpa parser is in this [notebook](notebooks/test_llmsherpa_api.ipynb).
 

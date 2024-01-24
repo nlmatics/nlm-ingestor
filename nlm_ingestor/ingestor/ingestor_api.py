@@ -33,6 +33,7 @@ def ingest_document(
         logger.info(f"Parsing {mime_type} at {doc_location} with name {doc_name}")
         if mime_type == "application/pdf":
             logger.info("using pdf parser")
+            print("testing..", parse_options)
             pdfi = pdf_ingestor.PDFIngestor(doc_location, parse_options)
             return_dict = pdfi.return_dict
         elif mime_type in {"text/markdown", "text/x-markdown"}:

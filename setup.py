@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name='nlm-ingestor',
-    version='0.1.2',    
+    version='0.1.3',    
     description='Parsers and ingestors for different file types and formats',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
