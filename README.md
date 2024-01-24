@@ -27,30 +27,6 @@ A special text parser which tries to figure out lists, tables, headers etc. pure
 There are two ways to process these types of documents
 - html output from tika for these file types is used and parsed by the html parser
 
-## Nlm Modified Tika
-Nlm modified version of Tika can be found in the 2.4.1-nlm branch here https://github.com/nlmatics/nlm-tika/tree/2.4.1-nlm
-For convenience, a compiled jar file of the code is included in this repo in jars/ folder.
-In some cases, your PDFs may result in errors in the Java server and you will need to modify the code there to resolve the issue and recompile the jar file.
-
-The following files are changed: 
-
-1) https://github.com/nlmatics/nlm-tika/blob/2.4.1-nlm/tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module/src/main/java/org/apache/tika/parser/pdf/PDF2XHTML.java
-2) https://github.com/nlmatics/nlm-tika/blob/2.4.1-nlm/tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module/src/main/java/org/apache/tika/parser/pdf/AbstractPDF2XHTML.java
-
-The above is to add font and co-ordinates to every text element. It also removes watermarks.
-
-3) https://github.com/nlmatics/nlm-tika/blob/2.4.1-nlm/tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module/src/main/java/org/apache/tika/parser/pdf/GraphicsStreamProcessor.java
-
-The above is to add lines and rectangles that can potentially help with table detection.
-
-To see the impact of these changes, see the first part of the notebook here: https://github.com/nlmatics/nlm-ingestor/blob/main/notebooks/pdf_visual_ingestor_step_by_step.ipynb
-
-Some ideas for future work:
-1) Make the changes independent of tika by writing own wrapper over pdfbox
-2) Upgrade to latest version of tika 
-3) Cleanup the format of returned html to make it more css friendly
-
-
 ## Installation steps:
 ### Run each step directly
 1. Install latest version of java from https://www.oracle.com/java/technologies/downloads/
@@ -109,3 +85,25 @@ The [line_parser](nlm_ingestor/ingestor/line_parser.py) which serves as a core s
 
 Also we are thankful to the Apache PDFBox and Tika developer community for their years of work in providing the base for the PDF Parser. 
 
+## Nlm Modified Tika
+Nlm modified version of Tika can be found in the 2.4.1-nlm branch here https://github.com/nlmatics/nlm-tika/tree/2.4.1-nlm
+For convenience, a compiled jar file of the code is included in this repo in jars/ folder.
+In some cases, your PDFs may result in errors in the Java server and you will need to modify the code there to resolve the issue and recompile the jar file.
+
+The following files are changed: 
+
+1) https://github.com/nlmatics/nlm-tika/blob/2.4.1-nlm/tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module/src/main/java/org/apache/tika/parser/pdf/PDF2XHTML.java
+2) https://github.com/nlmatics/nlm-tika/blob/2.4.1-nlm/tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module/src/main/java/org/apache/tika/parser/pdf/AbstractPDF2XHTML.java
+
+The above is to add font and co-ordinates to every text element. It also removes watermarks.
+
+3) https://github.com/nlmatics/nlm-tika/blob/2.4.1-nlm/tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module/src/main/java/org/apache/tika/parser/pdf/GraphicsStreamProcessor.java
+
+The above is to add lines and rectangles that can potentially help with table detection.
+
+To see the impact of these changes, see the first part of the notebook here: https://github.com/nlmatics/nlm-ingestor/blob/main/notebooks/pdf_visual_ingestor_step_by_step.ipynb
+
+Some ideas for future work:
+1) Make the changes independent of tika by writing own wrapper over pdfbox
+2) Upgrade to latest version of tika 
+3) Cleanup the format of returned html to make it more css friendly
