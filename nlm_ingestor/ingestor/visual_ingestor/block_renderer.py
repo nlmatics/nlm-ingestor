@@ -260,7 +260,7 @@ class BlockRenderer:
                         block["box_style"][0],
                         block["box_style"][1] + block["box_style"][3],
                         block["box_style"][0] + block["box_style"][4],
-                    ]                   
+                    ] if "box_style" in block else []                 
                 }
             elif block_type == "list_item" and not is_rendering_table:
                 block_dict = self.render_nested_block_as_dict(block, "list_item")
@@ -277,7 +277,7 @@ class BlockRenderer:
                         block["box_style"][0],
                         block["box_style"][1] + block["box_style"][3],
                         block["box_style"][0] + block["box_style"][4],
-                    ]                   
+                    ] if "box_style" in block else []                 
                 }
 
             if block_dict:
@@ -348,7 +348,7 @@ class BlockRenderer:
                         table_block["top"],
                         table_block["left"] + block["box_style"][3],
                         table_block["top"] + block["box_style"][4],
-                    ]                   
+                    ]  if "box_style" in block else []                 
                 table_rows = []
 
         return render_dict
@@ -373,7 +373,7 @@ class BlockRenderer:
                     block["box_style"][0],
                     block["box_style"][1] + block["box_style"][3],
                     block["box_style"][0] + block["box_style"][4],
-                ]
+                ] if "box_style" in block else [],
             }
         return block_dict
 
