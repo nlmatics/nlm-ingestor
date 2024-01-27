@@ -56,7 +56,7 @@ docker run -p 5010:5001 ghcr.io/nlmatics/nlm-ingestor:latest-<version>
 Once you have the server running, you can use the [llmsherpa](https://github.com/nlmatics/llmsherpa) API library to get chunks and use them for your LLM projects. Your llmsherpa_url will be:
 "http://localhost:5010/api/parseDocument?renderFormat=all"
 - to apply OCR add &applyOcr=yes
-- to use the new indent parser which uses a different alogrithm to assign header levels, add &useNewIndentParser=yes
+- to use the new indent parser which uses a different algorithm to assign header levels, add &useNewIndentParser=yes
 - this server is good for your development - in production it is recommended to run this behind a secure gateway using nginx or cloud gateways
 
 ### Test the ingestor server
