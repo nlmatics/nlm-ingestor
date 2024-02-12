@@ -16,7 +16,7 @@ logger.setLevel(cfg.log_level())
 
 @app.route('/')
 def health_check():
-    return 'Service is up', 200
+    return 'Service is running', 200
 
 @app.route('/api/parseDocument', methods=['POST'])
 def parse_document(
