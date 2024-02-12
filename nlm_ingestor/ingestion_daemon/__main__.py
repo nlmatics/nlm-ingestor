@@ -14,6 +14,10 @@ app = Flask(__name__)
 logger = logging.getLogger(__name__)
 logger.setLevel(cfg.log_level())
 
+@app.route('/')
+def health_check():
+    return 'Service is up', 200
+
 @app.route('/api/parseDocument', methods=['POST'])
 def parse_document(
     file=None,
