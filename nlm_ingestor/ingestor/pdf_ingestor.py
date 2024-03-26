@@ -232,7 +232,7 @@ def top_pages_info(parsed_doc):
     def retrieve_title_candidates(key_idx):
         temp_ = []
         title_candidates_ = []
-        if len(sorted_freq) > 0:
+        if len(sorted_freq) > 0 and len(list(sorted_freq.keys())) > key_idx:
             for freq_ in sorted_freq[list(sorted_freq.keys())[key_idx]]:
                 if (parsed_doc.blocks[freq_["enum_idx"]]["box_style"][0] >= parsed_doc.page_height / 2) or \
                         not len(text_only_pattern.sub("", freq_["text"]).strip()):
