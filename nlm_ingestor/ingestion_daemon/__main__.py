@@ -41,7 +41,7 @@ def parse_document(
         # calculate the file properties
         props = file_utils.extract_file_properties(tmp_file)
         logger.info(f"Parsing document: {filename}")
-        ingest_status, return_dict = ingestor_api.ingest_document(
+        return_dict, _ = ingestor_api.ingest_document(
             filename,
             tmp_file,
             props["mimeType"],
@@ -50,7 +50,7 @@ def parse_document(
         if tmp_file and os.path.exists(tmp_file):
             os.unlink(tmp_file)
         return make_response(
-            jsonify({"status": ingest_status, "return_dict": return_dict or {}}),
+            jsonify({"status": 200, "return_dict": return_dict or {}}),
         )
 
     except Exception as e:
