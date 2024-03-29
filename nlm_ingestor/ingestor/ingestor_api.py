@@ -31,47 +31,46 @@ def ingest_document(
         parse_options: dict = None,
 ):
         logger.info(f"Parsing {mime_type} at {doc_location} with name {doc_name}")
+        ingestor = None
         if mime_type == "application/pdf":
             logger.info("using pdf parser")
-            print("testing..", parse_options)
-            pdfi = pdf_ingestor.PDFIngestor(doc_location, parse_options)
-            return_dict = pdfi.return_dict
+            ingestor = pdf_ingestor.PDFIngestor(doc_location, parse_options)
+            return_dict = ingestor.return_dict
         elif mime_type in {"text/markdown", "text/x-markdown"}:
             logger.info("using markdown parser")
-            md_doc = markdown_parser.MarkdownDocument(doc_location)
+            ingestor = markdown_parser.MarkdownDocument(doc_location)
             return_dict = {
-                "result": md_doc.json_dict
+                "result": ingestor.json_dict
             }
         elif mime_type == "text/html":
             logger.info("using html parser")
-            htmli = html_ingestor.HTMLIngestor(doc_location)
+            ingestor = html_ingestor.HTMLIngestor(doc_location)
             return_dict = {
-                "result": htmli.json_dict,
+                "result": ingestor.json_dict,
             }
         elif mime_type == "text/plain":
             logger.info("using text parser")
-            texti = text_ingestor.TextIngestor(doc_location, parse_options)
-            return_dict = texti.return_dict             
+            ingestor = text_ingestor.TextIngestor(doc_location, parse_options)
+            return_dict = ingestor.return_dict             
         elif mime_type == "text/xml":
             logger.info("using xml parser")
-            xmli = xml_ingestor.XMLIngestor(doc_location)
+            ingestor = xml_ingestor.XMLIngestor(doc_location)
             return_dict = {
-                "result": xmli.json_dict,
+                "result": ingestor.json_dict,
             }
         else: # use tika parser as a catch all
             logger.info(f"defaulting to tika parser for mime_type {mime_type}")
             parsed_content = pdf_file_parser.parse_to_html(doc_location)
             with open(doc_location, "w") as file:
                 file.write(parsed_content["content"])
-            html = html_ingestor.HTMLIngestor(doc_location)
+            ingestor = html_ingestor.HTMLIngestor(doc_location)
             return_dict = {
-                "result": html.json_dict,
+                "result": ingestor.json_dict,
             }
 
-        status = None
         if doc_location and os.path.exists(doc_location):
             os.unlink(doc_location)
             logger.info(f"File {doc_location} deleted")
-        return status, return_dict
+        return return_dict, ingestor
 
     

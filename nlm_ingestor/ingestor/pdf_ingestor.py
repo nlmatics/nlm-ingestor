@@ -44,9 +44,13 @@ class PDFIngestor:
         }
         if render_format == "json":
             return_dict["result"] = result[0].get("document", {})
+            self.doc_result_json = result[0]
         elif render_format == "all":
             return_dict["result"] = result[1].get("document", {})
+            self.doc_result_json = result[1]
         self.return_dict = return_dict
+        self.file_data = _file_data
+        self.blocks = blocks
 
 
 def parse_pdf(doc_location, parse_options):
