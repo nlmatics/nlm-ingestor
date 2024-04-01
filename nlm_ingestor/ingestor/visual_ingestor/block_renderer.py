@@ -339,7 +339,7 @@ class BlockRenderer:
                     tab_row["block_idx"] = block["block_idx"]
                     table_rows.append(tab_row)
 
-            if 'is_table_end' in block:
+            if 'is_table_end' in block and len(render_dict["blocks"]) > 0 and render_dict["blocks"][-1]["tag"] == "table":
                 is_rendering_table = False
                 table_block = render_dict["blocks"][-1] 
                 table_block["table_rows"] = table_rows
