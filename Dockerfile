@@ -20,7 +20,10 @@ RUN apt-get install -y \
     && apt-get update \
     && apt-get install -y \
     tesseract-ocr libtesseract-dev \
-    && wget -P /usr/share/tesseract-ocr/5/tessdata/ https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata
+    && wget -P /usr/share/tesseract-ocr/5/tessdata/ \
+    https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata \
+    https://github.com/tesseract-ocr/tessdata/raw/main/chi_sim.traineddata \
+    https://github.com/tesseract-ocr/tessdata/raw/main/chi_tra.traineddata
 RUN apt-get install unzip -y && \
     apt-get install git -y && \
     apt-get autoremove -y
