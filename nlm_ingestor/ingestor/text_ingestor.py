@@ -4,6 +4,7 @@ from collections import namedtuple
 from nlm_ingestor.ingestor_utils.utils import NpEncoder
 from nlm_ingestor.ingestor_utils import utils
 from nlm_ingestor.ingestor.visual_ingestor import block_renderer
+from nlm_ingestor.ingestor_utils.ing_named_tuples import LineStyle
 from . import processors
 
 class TextIngestor:
@@ -19,6 +20,11 @@ class TextIngestor:
         blocks, _block_texts, _sents, _file_data, result, page_dim, num_pages = parse_blocks(
             raw_lines=raw_lines
         )
+        self.blocks = blocks
+        self.line_style_classes = {}
+        self.class_levels = {}
+        self.add_styles()
+
         return_dict = {
             "page_dim": page_dim,
             "num_pages": num_pages,
@@ -28,6 +34,44 @@ class TextIngestor:
         elif render_format == "all":
             return_dict["result"] = result[1].get("document", {})
         self.return_dict = return_dict
+        br = block_renderer.BlockRenderer(self)
+        self.html_str = br.render_html()
+        self.json_dict = br.render_json()
+
+    def add_styles(self):
+        title_style = LineStyle(
+            "Roboto, Georgia, serif",
+            "bold",
+            14.0,
+            "500",
+            "left",
+            0,  # TODO: Decide what font_space_width needs to be added
+            "left"
+        )
+        self.line_style_classes[title_style] = "nlm-text-title"
+        self.class_levels["nlm-text-title"] = 0
+        header_style = LineStyle(
+            "Roboto, Georgia, serif",
+            "normal",
+            12.0,
+            "600",
+            "left",
+            0,  # TODO: Decide what font_space_width needs to be added
+            "left"
+        )
+        self.line_style_classes[header_style] = "nlm-text-header"
+        self.class_levels["nlm-text-header"] = 1
+        para_style = LineStyle(
+            "Roboto, Georgia, serif",
+            "normal",
+            10.0,
+            "400",
+            "left",
+            0,  # TODO: Decide what font_space_width needs to be added
+            "left"
+        )
+        self.line_style_classes[para_style] = 'nlm-text-body'
+        self.class_levels['nlm-text-body'] = 2
 
 def parse_blocks(raw_lines):
 
