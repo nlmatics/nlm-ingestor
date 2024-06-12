@@ -23,6 +23,7 @@ class TikaFileParser(FileParser):
                 "X-Tika-OCRskipOcr": "false",
                 "X-Tika-OCRoutputType": "hocr",
                 "X-Tika-Timeout-Millis": str(100 * timeout),
+                "X-Tika-PDFOcrStrategy": "ocr_only",
                 "X-Tika-OCRtimeoutSeconds": str(timeout),
             }
 
