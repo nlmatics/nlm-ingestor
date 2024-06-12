@@ -16,7 +16,9 @@ class TikaFileParser(FileParser):
         # Turn off OCR by default
         timeout = 3000
         headers = {
-            "X-Tika-OCRskipOcr": "true"
+            "X-Tika-OCRskipOcr": "true",
+            "X-Tika-PDFOcrStrategy": "auto",
+            "X-Tika-PDFExtractFontNames": "true"
         }
         if do_ocr:
             headers = {
