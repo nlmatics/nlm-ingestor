@@ -18,7 +18,7 @@ class TikaFileParser(FileParser):
         headers = {
             "X-Tika-OCRskipOcr": "true",
             "X-Tika-PDFOcrStrategy": "auto",
-            "X-Tika-PDFExtractFontNames": "true",
+            "X-Tika-PDFExtractFontNames": "true"
         }
         if do_ocr:
             headers = {
