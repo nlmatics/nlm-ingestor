@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name='nlm-ingestor',
-    version='0.1.5',    
+    version='0.1.7',    
     description='Parsers and ingestors for different file types and formats',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
@@ -24,8 +24,8 @@ setup(
         "python-magic",
         "numpy",
         "tqdm",
-        "symspellpy==6.7.0",
-        "pandas==1.2.4",
+        "symspellpy>=6.7.0",
+        "pandas>=1.2.4",
         "mistune==2.0.3",
         "lxml==4.9.1",
         "unidecode",
