@@ -32,7 +32,7 @@ There are two ways to process these types of documents
 1. Install latest version of java from https://www.oracle.com/java/technologies/downloads/
 2. Run the tika server:
 ```
- java -jar <path_to_nlm_ingestor>/jars/tika-server-standard-nlm-modified-2.9.2_v1.jar
+java -jar <path_to_nlm_ingestor>/jars/tika-server-standard-nlm-modified-2.9.2_v2.jar
 ```
 3. Install the ingestor
 ```
