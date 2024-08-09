@@ -30,8 +30,8 @@ RUN pip install --upgrade pip setuptools
 RUN apt-get install -y libmagic1
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 RUN pip install -r requirements.txt
-RUN python -m nltk.downloader stopwords
-RUN python -m nltk.downloader punkt
+RUN python -m nltk.downloader -d /usr/share/nltk_data stopwords
+RUN python -m nltk.downloader -d /usr/share/nltk_data punkt
 RUN python -c "import tiktoken; tiktoken.get_encoding(\"cl100k_base\")"
 RUN chmod +x run.sh
 EXPOSE 5001
