@@ -2,8 +2,7 @@ import logging
 import os
 import string
 
-from symspellpy.symspellpy import SymSpell
-from symspellpy.symspellpy import Verbosity
+from symspellpy.symspellpy import SymSpell, Verbosity
 
 import nlm_ingestor.ingestor as ingestor
 from nlm_ingestor.ingestor import patterns
@@ -25,12 +24,16 @@ class SpellUtil:
         )
 
         if not self.sym_spell.load_dictionary(
-            dictionary_path, term_index=0, count_index=1,
+            dictionary_path,
+            term_index=0,
+            count_index=1,
         ):
             logging.error(f"Dictionary file not found: {dictionary_path}")
             return
         if not self.sym_spell.load_bigram_dictionary(
-            bigram_path, term_index=0, count_index=2,
+            bigram_path,
+            term_index=0,
+            count_index=2,
         ):
             logger.error(f"Bigram dictionary file not found: {bigram_path}")
             return

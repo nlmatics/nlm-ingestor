@@ -1,7 +1,7 @@
 import argparse
 import codecs
-import os
 import multiprocessing as mp
+import os
 from itertools import groupby
 
 from bs4 import BeautifulSoup
@@ -9,8 +9,7 @@ from nlm_utils.storage import file_storage
 from pymongo import MongoClient
 from tika import parser
 
-from nlm_ingestor.ingestor import table_parser
-from nlm_ingestor.ingestor import visual_ingestor
+from nlm_ingestor.ingestor import table_parser, visual_ingestor
 
 db_client = MongoClient(os.getenv("MONGO_HOST", "localhost"))
 db = db_client[os.getenv("MONGO_DATABASE", "doc-store-dev")]
@@ -72,10 +71,12 @@ def get_html(doc_id, doc_type):
         print("parsing pdf")
         # Turn off OCR by default
         timeout = 9000
-        headers = {
-            "X-Tika-OCRskipOcr": "true"
-        }
-        parsed = parser.from_file(file_location, xmlContent=True, requestOptions={'headers': headers, 'timeout': timeout})
+        headers = {"X-Tika-OCRskipOcr": "true"}
+        parsed = parser.from_file(
+            file_location,
+            xmlContent=True,
+            requestOptions={"headers": headers, "timeout": timeout},
+        )
         print("pdf parsed")
         if not os.path.exists("files/html"):
             os.makedirs("files/html")
@@ -177,10 +178,12 @@ def print_results(
             s += row_break
             correct = match[0]
             correct_pos = f"{correct['top']}, {correct['left']}"
-            s += f"{print_document_attrs(correct['doc_id'])}; Page: {correct['page_idx']}; location: {correct_pos}; " \
-                 f"Table Name: {correct['name']}; Tag: {correct['tag']} \n"
+            s += (
+                f"{print_document_attrs(correct['doc_id'])}; Page: {correct['page_idx']}; location: {correct_pos}; "
+                f"Table Name: {correct['name']}; Tag: {correct['tag']} \n"
+            )
             s += "Stored: \n"
-            s += print_table(correct['table'])
+            s += print_table(correct["table"])
             s += "Parsed: \n"
             s += print_table(match[1])
 
@@ -252,10 +255,10 @@ def run_test(doc_id="", doc_type="html", num_procs=1):
         query = {}
     # loop through every document in every collection
     tests = [doc for doc in db["ingestor_table_test_cases"].find(query)]
-    tests.sort(key=lambda x: x['doc_id'])
+    tests.sort(key=lambda x: x["doc_id"])
     groups = []
-    for k, v in groupby(tests, key=lambda x: x['doc_id']):
-        groups.append(list(v))    # Store group iterator as a list
+    for k, v in groupby(tests, key=lambda x: x["doc_id"]):
+        groups.append(list(v))  # Store group iterator as a list
 
     if len(groups) > 1:
         number_of_processes = num_procs
@@ -287,14 +290,16 @@ if __name__ == "__main__":
 
     doc_id_list = []
     if args.doc_id:
-        doc_id_list = args.doc_id.split(',')
+        doc_id_list = args.doc_id.split(",")
     if args.doc_type:
         doc_type = args.doc_type
     if args.num_procs:
         num_procs = int(args.num_procs)
-    print(f"running script with -> docId: {doc_id_list}, docType: {doc_type}, num_procs: {num_procs}")
+    print(
+        f"running script with -> docId: {doc_id_list}, docType: {doc_type}, num_procs: {num_procs}"
+    )
     if len(doc_id_list) > 0:
         for doc_id in doc_id_list:
             run_test(doc_id=doc_id, doc_type=doc_type, num_procs=num_procs)
     else:
-        run_test(doc_id='', doc_type=doc_type, num_procs=num_procs)
+        run_test(doc_id="", doc_type=doc_type, num_procs=num_procs)

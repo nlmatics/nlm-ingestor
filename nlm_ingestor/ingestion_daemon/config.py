@@ -1,7 +1,6 @@
 import os
 from distutils import util as dutils
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 __CFG = dict()
 
@@ -24,9 +23,7 @@ def get_config_as_list(key, default: Optional[List] = []):
     return (
         __CFG.get(key)
         if key in __CFG
-        else os.environ.get(key).split(",")
-        if key in os.environ
-        else default
+        else os.environ.get(key).split(",") if key in os.environ else default
     )
 
 

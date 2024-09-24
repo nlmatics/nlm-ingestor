@@ -1,13 +1,11 @@
 import logging
 import re
-from collections import Counter
-from collections import defaultdict
+from collections import Counter, defaultdict
 
-from . import formatter
-from . import line_parser
-from . import patterns
 from nlm_ingestor.ingestor_utils import spell_utils
 from nlm_ingestor.ingestor_utils.utils import sent_tokenize
+
+from . import formatter, line_parser, patterns
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

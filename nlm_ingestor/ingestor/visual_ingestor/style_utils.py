@@ -24,14 +24,19 @@ def parse_tika_style(style_str: str, text_str: str, page_width: float) -> dict:
     left = round(float(word_start_pos[0].split(",")[0]), 2)
     right = round(float(word_end_pos[-1].split(",")[0]), 2)
     # height = parse_px(input_style['height'])
-    font_size_height = parse_px(input_style['font-size'])
+    font_size_height = parse_px(input_style["font-size"])
     if right < left:
         # We have some issues here with Tika
         # Are all the word end positions having the same top? aka, same line are we dealing with?
         same_top = True
         for idx, _ in enumerate(word_end_pos[:-1]):
-            if abs(round(float(word_end_pos[idx].split(",")[1]), 2) -
-                   round(float(word_end_pos[idx + 1].split(",")[1]), 2)) <= 2:
+            if (
+                abs(
+                    round(float(word_end_pos[idx].split(",")[1]), 2)
+                    - round(float(word_end_pos[idx + 1].split(",")[1]), 2)
+                )
+                <= 2
+            ):
                 same_top = True
             else:
                 same_top = False
@@ -48,18 +53,14 @@ def parse_tika_style(style_str: str, text_str: str, page_width: float) -> dict:
                 font_space_width = round(float(word_fonts[0].split(",")[5]), 2)
                 right = left + (len(text_str) * font_space_width)
     box_style = BoxStyle(
-        parse_px(input_style['top']),
-        left,
-        right,
-        right - left,
-        font_size_height
+        parse_px(input_style["top"]), left, right, right - left, font_size_height
     )
-    font_family = input_style['font-family']
-    font_weight = input_style['font-weight']
+    font_family = input_style["font-family"]
+    font_weight = input_style["font-weight"]
     font_weight = get_numeric_font_weight(font_family, font_weight)
     font_size = round(font_scale * font_size_height, 1)
-    text_transform = 'none'  # "uppercase" if text_str.isupper() else "none"
-    text_align = 'left'  # "center" if is_center_aligned else "left"
+    text_transform = "none"  # "uppercase" if text_str.isupper() else "none"
+    text_align = "left"  # "center" if is_center_aligned else "left"
     font_space_width = 1.5
     word_line_styles = []
     for wf_idx, wf in enumerate(word_fonts):
@@ -89,7 +90,7 @@ def parse_tika_style(style_str: str, text_str: str, page_width: float) -> dict:
         font_weight,
         text_transform,
         font_space_width,
-        text_align
+        text_align,
     )
     # print(word_start_pos[1])
     # for word_font in word_fonts:
@@ -166,25 +167,44 @@ def format_p_tag(p, filter_out_pattern, filter_ls_pattern, soup):
                     # Right now we assume that there will one filter pattern match in the whole original p_tag.
                     new_input_style = input_style.copy()
                     # Change the string
-                    new_p = soup.new_tag('p')
+                    new_p = soup.new_tag("p")
                     new_p.string = " ".join(new_text)
                     for key in keys:
                         new_input_style[key] = new_input_style[key][:idx]
-                        new_input_style[key] = "[(" + "), (".join(new_input_style[key]) + ")]"
+                        new_input_style[key] = (
+                            "[(" + "), (".join(new_input_style[key]) + ")]"
+                        )
                     # Create string out of dictionary
-                    new_p["style"] = ";".join([":".join([key, str(val)]) for key, val in new_input_style.items()])
+                    new_p["style"] = ";".join(
+                        [
+                            ":".join([key, str(val)])
+                            for key, val in new_input_style.items()
+                        ]
+                    )
                     # Reset the text
                     new_text = []
                 new_p_end_idx = idx - 1
-                [word_start_x, word_start_y] = input_style["word-start-positions"][idx].split(",")
+                [word_start_x, word_start_y] = input_style["word-start-positions"][
+                    idx
+                ].split(",")
                 [_, _, _, _, _, val] = input_style["word-fonts"][idx].split(",")
-                word_start_x = float(word_start_x) + (float(val) * (len(tok) - len(new_tok)))
-                input_style["word-start-positions"][idx] = str(word_start_x) + "," + word_start_y
+                word_start_x = float(word_start_x) + (
+                    float(val) * (len(tok) - len(new_tok))
+                )
+                input_style["word-start-positions"][idx] = (
+                    str(word_start_x) + "," + word_start_y
+                )
             else:
-                [word_end_x, word_end_y] = input_style["word-end-positions"][idx].split(",")
+                [word_end_x, word_end_y] = input_style["word-end-positions"][idx].split(
+                    ","
+                )
                 [_, _, _, _, _, val] = input_style["word-fonts"][idx].split(",")
-                word_end_x = float(word_end_x) - (float(val) * (len(tok) - len(new_tok)))
-                input_style["word-end-positions"][idx] = str(word_end_x) + "," + word_end_y
+                word_end_x = float(word_end_x) - (
+                    float(val) * (len(tok) - len(new_tok))
+                )
+                input_style["word-end-positions"][idx] = (
+                    str(word_end_x) + "," + word_end_y
+                )
             new_text.append(str(new_tok))
         else:
             new_text.append(str(tok))
@@ -197,24 +217,30 @@ def format_p_tag(p, filter_out_pattern, filter_ls_pattern, soup):
             del input_style["word-end-positions"][i]
             del input_style["word-fonts"][i]
             if new_p_end_idx >= -1:
-                new_p_end_idx -= len([i for i in indices_to_remove if i <= new_p_end_idx])
+                new_p_end_idx -= len(
+                    [i for i in indices_to_remove if i <= new_p_end_idx]
+                )
         # Create string out of the list
         for key in keys:
             if new_p_end_idx >= -1:
                 # Recreate the style parameters.
-                if key == 'word-start-positions':
-                    input_style['text-indent'] = str(input_style[key][new_p_end_idx + 1].split(",")[0])
-                elif key == 'word-fonts':
-                    [font_family, font_weight, font_style, _, _, _] = input_style[key][new_p_end_idx + 1].split(",")
-                    input_style['font-family'] = str(font_family)
+                if key == "word-start-positions":
+                    input_style["text-indent"] = str(
+                        input_style[key][new_p_end_idx + 1].split(",")[0]
+                    )
+                elif key == "word-fonts":
+                    [font_family, font_weight, font_style, _, _, _] = input_style[key][
+                        new_p_end_idx + 1
+                    ].split(",")
+                    input_style["font-family"] = str(font_family)
                     font_weight = get_numeric_font_weight(font_family, font_weight)
-                    input_style['font-weight'] = font_weight
-                    input_style['font-style'] = font_style
-                input_style[key] = input_style[key][new_p_end_idx + 1:]
+                    input_style["font-weight"] = font_weight
+                    input_style["font-style"] = font_style
+                input_style[key] = input_style[key][new_p_end_idx + 1 :]
             input_style[key] = "[(" + "), (".join(input_style[key]) + ")]"
         # Create string out of dictionary
-        p["style"] = ";".join([":".join([key, str(val)]) for key, val in input_style.items()])
+        p["style"] = ";".join(
+            [":".join([key, str(val)]) for key, val in input_style.items()]
+        )
 
     return new_p, changed
-
-

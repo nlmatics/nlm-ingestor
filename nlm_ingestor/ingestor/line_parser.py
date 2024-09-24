@@ -6,9 +6,7 @@ import string
 
 from nltk.corpus import stopwords
 
-from .patterns import abbreviations
-from .patterns import states
-from .patterns import states_abbreviations
+from .patterns import abbreviations, states, states_abbreviations
 from .styling_utils import mode_of_list
 
 try:
@@ -66,9 +64,7 @@ unicode_list_types = {
     "\\uf0b7": "•",
     "\\uf0fc": "",
 }
-footnote_types = {
-    "©"
-}
+footnote_types = {"©"}
 ambiguous_list_chars = ["+", "-"]
 units = ["acres", "miles", "-"]  # - could represent a null value in a row
 punctuations = string.punctuation + "“"
@@ -88,10 +84,12 @@ Quote Pattern details:
 quote_pattern = re.compile(
     r'(?:(?<=\W)|(?<=^))["“‘’\']+(?!\D\s)(?!\d+)(.*?)[,;.]?[”"‘’\']+',
 )  # (r'["“\'](.*?)[,;.]?[”"\']')
-single_char_pattern = re.compile(r'[a-zA-Z]')
-multi_char_pattern = re.compile(r'[a-zA-Z]+')
-roman_number_pattern = re.compile(r'[ixvIXV]+$')
-ends_with_sentence_delimiter_pattern = re.compile(r"(?<![.;:][a-zA-Z0-9])(?<!INC|inc|Inc)[.;:]+(?![\w])[\"“‘’”\'\s]*$")
+single_char_pattern = re.compile(r"[a-zA-Z]")
+multi_char_pattern = re.compile(r"[a-zA-Z]+")
+roman_number_pattern = re.compile(r"[ixvIXV]+$")
+ends_with_sentence_delimiter_pattern = re.compile(
+    r"(?<![.;:][a-zA-Z0-9])(?<!INC|inc|Inc)[.;:]+(?![\w])[\"“‘’”\'\s]*$"
+)
 conjunction_list = ["for", "and", "not", "but", "or", "yet", "so", "between"]
 
 
@@ -113,15 +111,15 @@ class Word:
         self.parts = []
         text_without_punct = self.text
 
-        while (
-                len(text_without_punct) > 1 and
-                (text_without_punct[-1] in string.punctuation or text_without_punct[-1] in end_quotations)
+        while len(text_without_punct) > 1 and (
+            text_without_punct[-1] in string.punctuation
+            or text_without_punct[-1] in end_quotations
         ):
             text_without_punct = text_without_punct[0:-1]
         # remove leading unbalancced punctuations
-        while (
-                len(text_without_punct) > 1 and
-                (text_without_punct[0] in string.punctuation or text_without_punct[0] in start_quotations)
+        while len(text_without_punct) > 1 and (
+            text_without_punct[0] in string.punctuation
+            or text_without_punct[0] in start_quotations
         ):
             text_without_punct = text_without_punct[1:]
 
@@ -254,8 +252,10 @@ class Line:
         has_enough_titles = title_ratio > 0.9 and self.eff_word_count < 10
 
         has_header_structure = (
-            (first_word_header or has_enough_titles) and self.number_count == 1
-        ) or self.numbered_line or self.text.isupper()
+            ((first_word_header or has_enough_titles) and self.number_count == 1)
+            or self.numbered_line
+            or self.text.isupper()
+        )
         # has_header_structure = has_header_structure and self.eff_word_count <
 
         last_word_number = (
@@ -265,36 +265,44 @@ class Line:
         )
         last_word_date = self.last_word_date and not has_header_structure
         # Find lines ending with sentence delimiter. But exclude text like "L.P."
-        ends_with_delim = ends_with_sentence_delimiter_pattern.search(self.text) is not None
-        sentence_structure = self.ends_with_period and not (
-            has_header_structure and title_ratio > 0.9
-        ) and ends_with_delim
+        ends_with_delim = (
+            ends_with_sentence_delimiter_pattern.search(self.text) is not None
+        )
+        sentence_structure = (
+            self.ends_with_period
+            and not (has_header_structure and title_ratio > 0.9)
+            and ends_with_delim
+        )
 
         last_letter_is_punctuation = (
-            self.last_word[-1] in punctuations and self.last_word[-1] not in ":?.)]%" and
-            ends_with_delim
+            self.last_word[-1] in punctuations
+            and self.last_word[-1] not in ":?.)]%"
+            and ends_with_delim
         )
 
         self.is_header_without_comma = (
-                not sentence_structure
-                and not self.has_list_char
-                and not self.first_char in footnote_types
-                and has_enough_titles
-                and not last_word_number
-                and (
-                        self.number_count == 0
-                        or (has_header_structure and self.number_count <= 1)
-                )
-                and not self.has_continuing_chars
-                and not last_word_date
-                and self.first_word_title
-                and not self.last_word_is_stop_word
-                and not self.is_zipcode_or_po
-                and not last_letter_is_punctuation
-                and not "://" in self.text  # url pattern
+            not sentence_structure
+            and not self.has_list_char
+            and not self.first_char in footnote_types
+            and has_enough_titles
+            and not last_word_number
+            and (
+                self.number_count == 0
+                or (has_header_structure and self.number_count <= 1)
+            )
+            and not self.has_continuing_chars
+            and not last_word_date
+            and self.first_word_title
+            and not self.last_word_is_stop_word
+            and not self.is_zipcode_or_po
+            and not last_letter_is_punctuation
+            and not "://" in self.text  # url pattern
         )
-        self.is_header = self.is_header_without_comma and \
-                         ((not self.text.count(',') > 1) if not self.text.lower().startswith('section') else True)
+        self.is_header = self.is_header_without_comma and (
+            (not self.text.count(",") > 1)
+            if not self.text.lower().startswith("section")
+            else True
+        )
 
     def check_ends_with_period(self):
         # punct_rule = self.last_char in string.punctuation and self.last_char not in [':', '.']
@@ -412,7 +420,7 @@ class Line:
         if self.numbered_line:
             self.start_number = trunc_word
             self.line_without_number = self.text[len(word) + 1 :]
-            self.full_number = self.text[:len(word)]
+            self.full_number = self.text[: len(word)]
 
     # check if line is part of address
     def check_zipcode_or_pobox(self):
@@ -565,8 +573,14 @@ class Line:
             if word.is_noun or word.text == "&":
                 noun = word.text_without_punct
                 prev_word = self.words[-1] if len(self.words) > 0 else None
-                if prev_word and (prev_word.is_number or prev_word.is_number_range) and not noun_chunk_buf:
-                    noun_chunk_buf.append(prev_word.text_without_punct)  # get stuff like 150 Broadway
+                if (
+                    prev_word
+                    and (prev_word.is_number or prev_word.is_number_range)
+                    and not noun_chunk_buf
+                ):
+                    noun_chunk_buf.append(
+                        prev_word.text_without_punct
+                    )  # get stuff like 150 Broadway
                 if noun.endswith("'s"):
                     noun = noun[0:-2]
                     noun_chunk_buf.append(noun)
@@ -592,7 +606,9 @@ class Line:
         if len(noun_chunk_buf) > 0:
             self.noun_chunks.append(" ".join(noun_chunk_buf))
 
-        self.noun_chunks = sorted(list(set(filter(lambda x: x.lower() not in stop_words, self.noun_chunks))))
+        self.noun_chunks = sorted(
+            list(set(filter(lambda x: x.lower() not in stop_words, self.noun_chunks)))
+        )
         self.first_word = tokens[0]
         self.last_word = tokens[-1]
         self.last_char = self.text[-1]
@@ -645,10 +661,16 @@ class Line:
         self.set_line_type()
 
         if self.is_header or self.is_header_without_comma:
-            if "," in self.text or self.last_word.isupper() and len(self.last_word) <= 2:
+            if (
+                "," in self.text
+                or self.last_word.isupper()
+                and len(self.last_word) <= 2
+            ):
                 self.is_reference_author_name = True
 
-        self.last_word_is_co_ordinate_conjunction = self.ends_with_comma or self.last_word in conjunction_list
+        self.last_word_is_co_ordinate_conjunction = (
+            self.ends_with_comma or self.last_word in conjunction_list
+        )
         # print(self.separate_line)
         # self.continuing_line = not self.separate_line and
 

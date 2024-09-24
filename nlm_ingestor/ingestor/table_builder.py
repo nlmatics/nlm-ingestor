@@ -203,7 +203,8 @@ def format_tables(blocks_df):
 
     if len(invalid):
         blocks_df.loc[
-            np.concatenate(np.array(tables)[np.array(invalid)], axis=0), "block_type",
+            np.concatenate(np.array(tables)[np.array(invalid)], axis=0),
+            "block_type",
         ] = "para"
     table_rows = blocks_df[blocks_df.block_type == "table_row"]
     table_list = []

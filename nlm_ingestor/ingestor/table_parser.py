@@ -19,7 +19,9 @@ class TableParser:
         table_infos = []
         table_start_idx = None
         for idx, info in enumerate(infos):
-            if info.get("is_table_start", False) and not info.get("has_merged_cells", False):
+            if info.get("is_table_start", False) and not info.get(
+                "has_merged_cells", False
+            ):
                 self.logger.debug(f"Found table start from match_idx:{idx}")
                 table_start_idx = idx
                 table_infos.append(info)
@@ -64,22 +66,27 @@ class TableParser:
         column_names = []
         cur_index = 0
         # process header_group and header to get column_names
-        while cur_index < len(table_infos) and (table_infos[cur_index].get("is_header_group", False) or table_infos[
-            cur_index
-        ].get("is_header", False)):
+        while cur_index < len(table_infos) and (
+            table_infos[cur_index].get("is_header_group", False)
+            or table_infos[cur_index].get("is_header", False)
+        ):
             column_info = table_infos[cur_index]
             if "col_spans" in column_info:
                 column_names.append([])
                 for span_idx, span_width in enumerate(column_info["col_spans"]):
                     for i in range(span_width):
                         if len(column_names) > 0:
-                            column_names[-1].append(column_info["cell_values"][span_idx])
+                            column_names[-1].append(
+                                column_info["cell_values"][span_idx]
+                            )
             else:
                 column_names.append(column_info["cell_values"])
             cur_index += 1
 
         if cur_index == len(table_infos):
-            self.logger.error(f"No actual table rows other than headers.. skipping current table")
+            self.logger.error(
+                f"No actual table rows other than headers.. skipping current table"
+            )
             return
         # only one level of column_name, flatten
         if len(column_names) == 1 and isinstance(column_names[0], list):
@@ -146,7 +153,9 @@ class TableParser:
                 col_names_at_idx = []
                 for col_level in range(len(column_names)):
                     col_name = column_names[col_level][idx]
-                    col_names_at_idx.append(col_name if "_UNKNOWN_COLUMN" not in col_name else "")
+                    col_names_at_idx.append(
+                        col_name if "_UNKNOWN_COLUMN" not in col_name else ""
+                    )
                 merged_col_names_at_idx = " ".join(col_names_at_idx)
 
                 if not merged_col_names_at_idx:
@@ -164,8 +173,10 @@ class TableParser:
             # drop all None columns
             df = df.dropna(how="all", axis="columns").fillna("")
         except Exception as e:
-            self.logger.error(f"Failed to create DataFrame. Please check ingestor. {e} \n"
-                              f"col names:\n{column_names} \ndata:\n{data[0:3]}")
+            self.logger.error(
+                f"Failed to create DataFrame. Please check ingestor. {e} \n"
+                f"col names:\n{column_names} \ndata:\n{data[0:3]}"
+            )
             return
 
         index_column = self.resolve_index(df)
@@ -220,10 +231,15 @@ class TableParser:
             }
             if column_idx == 0 and _shape["number_column"]:
                 # Check whether we are dealing with a year column
-                _shape["is_year_column"] = pd.to_numeric(
-                    column_value,
-                    errors="coerce",
-                ).dropna().between(1900, 2500).all()
+                _shape["is_year_column"] = (
+                    pd.to_numeric(
+                        column_value,
+                        errors="coerce",
+                    )
+                    .dropna()
+                    .between(1900, 2500)
+                    .all()
+                )
 
             shapes.append(_shape)
 
@@ -330,8 +346,10 @@ class TableParser:
 
         # create es record for rows
         cols = df.columns
-        if isinstance(df.index, pd.MultiIndex) and all(isinstance(col, tuple) for col in df.columns):
-            df.columns = [' '.join(col).strip() for col in df.columns]
+        if isinstance(df.index, pd.MultiIndex) and all(
+            isinstance(col, tuple) for col in df.columns
+        ):
+            df.columns = [" ".join(col).strip() for col in df.columns]
 
         for idx, (index, row) in enumerate(df.iterrows()):
             if not isinstance(index, tuple):
@@ -353,14 +371,34 @@ class TableParser:
             for columnIndex, value in row.items():
                 if not columnIndex.startswith("_UNKNOWN"):
                     if not index_name.startswith("("):
-                        final_text = index_name + " " + table_row_index_text + " " + columnIndex + " " + value
+                        final_text = (
+                            index_name
+                            + " "
+                            + table_row_index_text
+                            + " "
+                            + columnIndex
+                            + " "
+                            + value
+                        )
                     else:
-                        final_text = table_row_index_text + " " + columnIndex + " " + value + " " + index_name
+                        final_text = (
+                            table_row_index_text
+                            + " "
+                            + columnIndex
+                            + " "
+                            + value
+                            + " "
+                            + index_name
+                        )
                 else:
                     if not index_name.startswith("("):
-                        final_text = index_name + " " + table_row_index_text + " " + value
+                        final_text = (
+                            index_name + " " + table_row_index_text + " " + value
+                        )
                     else:
-                        final_text = table_row_index_text + " " + value + " " + index_name
+                        final_text = (
+                            table_row_index_text + " " + value + " " + index_name
+                        )
                 cell_texts.append(final_text.strip())
 
             es_index.append(table_row)
