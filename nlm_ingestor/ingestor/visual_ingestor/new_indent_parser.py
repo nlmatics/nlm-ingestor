@@ -270,7 +270,7 @@ class NewIndentParser(object):
                 "table_row",
             ]:
                 block["level"] = curr_header["level"] + 1
-            if block["block_type"] in ["list_item"]:
+            if curr_header and block["block_type"] in ["list_item"]:
                 if (
                     prev_block
                     and prev_block["block_type"] in ["para", "list_item"]
