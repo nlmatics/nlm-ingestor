@@ -1,34 +1,35 @@
 # parse style
 
 import copy
+import operator
+import pprint
 import re
 import string
-from collections import OrderedDict, namedtuple
-import operator
 import sys
-import numpy as np
-import pprint
-from typing import List, Dict
+from collections import OrderedDict, namedtuple
 from itertools import groupby
-from bs4 import BeautifulSoup
 from timeit import default_timer
+from typing import Dict, List
 
-from nlm_ingestor.ingestor_utils.utils import sent_tokenize
+import numpy as np
+from bs4 import BeautifulSoup
+
+from nlm_ingestor.ingestor import line_parser
+from nlm_ingestor.ingestor.visual_ingestor import (
+    block_renderer,
+    indent_parser,
+    order_fixer,
+    style_utils,
+    table_parser,
+)
+from nlm_ingestor.ingestor.visual_ingestor import vi_helper_utils as vhu
 from nlm_ingestor.ingestor_utils.ing_named_tuples import (
     BoxStyle,
     LineStyle,
     LocationKey,
 )
-from nlm_ingestor.ingestor.visual_ingestor import (
-    style_utils,
-    table_parser,
-    indent_parser,
-    block_renderer,
-    order_fixer,
-)
-from nlm_ingestor.ingestor import line_parser
 from nlm_ingestor.ingestor_utils.parsing_utils import *
-from nlm_ingestor.ingestor.visual_ingestor import vi_helper_utils as vhu
+from nlm_ingestor.ingestor_utils.utils import sent_tokenize
 
 base_font_size = 3
 header_margin = 0.18  # don't touch this!

@@ -78,7 +78,9 @@ class MyTest(unittest.TestCase):
         self.assertTrue(lp.Line("a. Testing").numbered_line)
         self.assertTrue(lp.Line("10.b Testing").numbered_line)
         self.assertFalse(lp.Line("i do").numbered_line)
-        self.assertFalse(lp.Line("$0.7656 per share (the “Per Share Purchase Price”).").numbered_line)
+        self.assertFalse(
+            lp.Line("$0.7656 per share (the “Per Share Purchase Price”).").numbered_line
+        )
         self.assertTrue(lp.Line("iv) Testing").roman_numbered_line)
         self.assertTrue(lp.Line("(iv) Testing").roman_numbered_line)
         self.assertFalse(lp.Line("Testing").integer_numbered_line)
@@ -301,7 +303,9 @@ class MyTest(unittest.TestCase):
             ).is_header,
         )
         self.assertFalse(lp.Line("Sunset from").is_header)
-        self.assertFalse(lp.Line("Stars: Don’t we know all there is to know?").is_header)
+        self.assertFalse(
+            lp.Line("Stars: Don’t we know all there is to know?").is_header
+        )
 
         self.assertFalse(
             lp.Line("• CONCRETE CAST-IN-PLACE (SEE STRUC. DWGS)").is_header,
@@ -479,24 +483,31 @@ class MyTest(unittest.TestCase):
         line = lp.Line("I used to work for Morgan Stanley's New York office")
         self.assertListEqual(line.noun_chunks, ["Morgan Stanley", "New York"])
         line = lp.Line('Stock symbol of Morgan Stanley is "MS"')
-        self.assertEqual(line.noun_chunks, ['MS', 'Morgan Stanley', 'Stock'])
+        self.assertEqual(line.noun_chunks, ["MS", "Morgan Stanley", "Stock"])
         line = lp.Line('This non negotiable Service Agreement is ("Service Agreement")')
-        self.assertEqual(line.noun_chunks, ['Service Agreement'])
+        self.assertEqual(line.noun_chunks, ["Service Agreement"])
         line = lp.Line("Skadden, Arps, Slate, Meagher & Flom LLP")
         self.assertEqual(line.noun_chunks, ["Skadden Arps Slate Meagher & Flom LLP"])
         line = lp.Line("There are 25 florrs in 150 Broadway and they are all oversold")
         self.assertEqual(line.noun_chunks, ["150 Broadway"])
         line = lp.Line("Series Seed 1 Preferred Stock, par value $0.00001 per share")
         self.assertEqual(line.noun_chunks, ["Series Seed 1 Preferred Stock"])
-        line = lp.Line("1.3 that number of Shares set forth opposite such Investor’s name on Schedule A hereto "
-                       "for a purchase price of $6.021 per share of Series B-1 Preferred Stock, $5.118 per share of "
-                       "Series B-2 Preferred Stock and $4.817 per share of Series B-3 Preferred Stock, as applicable.")
-        self.assertEqual(line.noun_chunks, ['Investor’s',
-                                            'Schedule A',
-                                            'Series B-1 Preferred Stock',
-                                            'Series B-2 Preferred Stock',
-                                            'Series B-3 Preferred Stock',
-                                            'Shares'])
+        line = lp.Line(
+            "1.3 that number of Shares set forth opposite such Investor’s name on Schedule A hereto "
+            "for a purchase price of $6.021 per share of Series B-1 Preferred Stock, $5.118 per share of "
+            "Series B-2 Preferred Stock and $4.817 per share of Series B-3 Preferred Stock, as applicable."
+        )
+        self.assertEqual(
+            line.noun_chunks,
+            [
+                "Investor’s",
+                "Schedule A",
+                "Series B-1 Preferred Stock",
+                "Series B-2 Preferred Stock",
+                "Series B-3 Preferred Stock",
+                "Shares",
+            ],
+        )
 
     def test_quotation_words(self):
         line = lp.Line('This company ("NLMatics") is refered as NLMatics')

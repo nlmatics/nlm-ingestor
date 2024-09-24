@@ -2,9 +2,9 @@ import re
 
 from . import patterns
 
-
 # helper functions for processors
 # Helper functions to help classify and clean text
+
 
 # table functions
 # works for numbers dilimted by spaces and commas

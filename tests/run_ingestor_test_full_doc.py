@@ -1,8 +1,8 @@
 import argparse
 import codecs
+import multiprocessing as mp
 import os
 import time
-import multiprocessing as mp
 from itertools import groupby
 
 from bs4 import BeautifulSoup
@@ -10,8 +10,7 @@ from nlm_utils.storage import file_storage
 from pymongo import MongoClient
 from tika import parser
 
-from nlm_ingestor.ingestor import table_parser
-from nlm_ingestor.ingestor import visual_ingestor
+from nlm_ingestor.ingestor import table_parser, visual_ingestor
 
 db_client = MongoClient(os.getenv("MONGO_HOST", "localhost"))
 db = db_client[os.getenv("MONGO_DATABASE", "doc-store-dev")]
@@ -88,7 +87,7 @@ def get_html(doc_id, doc_type):
 
 def compare_results(test, html_text):
     print("comparing results")
-    if test['html_str'] == html_text:
+    if test["html_str"] == html_text:
         return "correct", html_text
     else:
         return "incorrect", html_text
@@ -156,16 +155,22 @@ def print_results(
             s += f"{print_document_attrs(correct['doc_id'])};\n"
             if not os.path.exists("files/html/parsers"):
                 os.makedirs("files/html/parsers")
-            f = open(f"files/html/parsers/{correct['doc_id']}_incorrect_{int(ts)}.html", "w")
+            f = open(
+                f"files/html/parsers/{correct['doc_id']}_incorrect_{int(ts)}.html", "w"
+            )
             f.write(str(match[1]))
             f.close()
-            f = open(f"files/html/parsers/{correct['doc_id']}_correct_{int(ts)}.html", "w")
-            f.write(str(correct['html_str']))
+            f = open(
+                f"files/html/parsers/{correct['doc_id']}_correct_{int(ts)}.html", "w"
+            )
+            f.write(str(correct["html_str"]))
             f.close()
 
     s += line_break
-    s += f"Total documents: {total_documents}, Total tests: {total_tests}, " \
-         f"correct: {len(correct_docs)}, incorrect: {len(incorrect_docs)}, missed: {len(missed_docs)} \n"
+    s += (
+        f"Total documents: {total_documents}, Total tests: {total_tests}, "
+        f"correct: {len(correct_docs)}, incorrect: {len(incorrect_docs)}, missed: {len(missed_docs)} \n"
+    )
     s += line_break
     return s
 
@@ -192,7 +197,7 @@ def run_full_doc_test(tests):
             # else:
             #     html_text = html_dict[doc_id]
             result, data = compare_results(test, html_text)
-            
+
             if result == "correct":
                 correct_docs.append(test)
                 local_correct_docs.append(test)
@@ -228,10 +233,10 @@ def run_test(doc_id="", doc_type="html", num_procs=1):
         query = {}
     # loop through every document in every collection
     tests = [doc for doc in db["ingestor_full_doc_test_cases"].find(query)]
-    tests.sort(key=lambda x: x['doc_id'])
+    tests.sort(key=lambda x: x["doc_id"])
     groups = []
-    for k, v in groupby(tests, key=lambda x: x['doc_id']):
-        groups.append(list(v))    # Store group iterator as a list
+    for k, v in groupby(tests, key=lambda x: x["doc_id"]):
+        groups.append(list(v))  # Store group iterator as a list
 
     if len(groups) > 1:
         number_of_processes = num_procs
@@ -263,14 +268,16 @@ if __name__ == "__main__":
 
     doc_id_list = []
     if args.doc_id:
-        doc_id_list = args.doc_id.split(',')
+        doc_id_list = args.doc_id.split(",")
     if args.doc_type:
         doc_type = args.doc_type
     if args.num_procs:
         num_procs = int(args.num_procs)
-    print(f"running script with -> docId: {doc_id_list}, docType: {doc_type}, num_procs: {num_procs}")
+    print(
+        f"running script with -> docId: {doc_id_list}, docType: {doc_type}, num_procs: {num_procs}"
+    )
     if len(doc_id_list) > 0:
         for doc_id in doc_id_list:
             run_test(doc_id=doc_id, doc_type=doc_type, num_procs=num_procs)
     else:
-        run_test(doc_id='', doc_type=doc_type, num_procs=num_procs)
+        run_test(doc_id="", doc_type=doc_type, num_procs=num_procs)

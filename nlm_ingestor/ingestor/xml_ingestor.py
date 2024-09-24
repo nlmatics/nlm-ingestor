@@ -1,10 +1,10 @@
-import xml.etree.ElementTree as ET
 import re
+import xml.etree.ElementTree as ET
 
 from nlm_ingestor.ingestor import processors
 from nlm_ingestor.ingestor.visual_ingestor import block_renderer
-from nlm_ingestor.ingestor_utils.utils import sent_tokenize
 from nlm_ingestor.ingestor_utils.ing_named_tuples import LineStyle
+from nlm_ingestor.ingestor_utils.utils import sent_tokenize
 
 # from nltk import sent_tokenize
 
@@ -86,7 +86,9 @@ class XMLIngestor:
                     for block in col_blocks:
                         # print("\t" * (level + 1), block["block_text"])
                         inline_header = has_header and block["block_type"] == "para"
-                        block["header_text"] = para_header if inline_header else header_text 
+                        block["header_text"] = (
+                            para_header if inline_header else header_text
+                        )
                         indent_offset = 2 if inline_header else 1
                         block["level"] = level + indent_offset
                         block["block_idx"] = len(blocks)
@@ -114,7 +116,7 @@ class XMLIngestor:
             "500",
             "left",
             0,  # TODO: Decide what font_space_width needs to be added
-            "left"
+            "left",
         )
         self.line_style_classes[title_style] = "nlm-text-title"
         self.class_levels["nlm-text-title"] = 0
@@ -125,7 +127,7 @@ class XMLIngestor:
             "600",
             "left",
             0,  # TODO: Decide what font_space_width needs to be added
-            "left"
+            "left",
         )
         self.line_style_classes[header_style] = "nlm-text-header"
         self.class_levels["nlm-text-header"] = 1
@@ -136,14 +138,14 @@ class XMLIngestor:
             "400",
             "left",
             0,  # TODO: Decide what font_space_width needs to be added
-            "left"
+            "left",
         )
-        self.line_style_classes[para_style] = 'nlm-text-body'
-        self.class_levels['nlm-text-body'] = 2
+        self.line_style_classes[para_style] = "nlm-text-body"
+        self.class_levels["nlm-text-body"] = 2
 
     @staticmethod
     def camel_case_split(str):
-        return re.findall(r'[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))', str)
+        return re.findall(r"[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))", str)
 
     @staticmethod
     def make_header(str):

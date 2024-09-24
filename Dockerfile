@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:experimental
 FROM python:3.11-bookworm
 RUN apt-get update && apt-get -y --no-install-recommends install libgomp1
-ENV APP_HOME /app
+ENV APP_HOME /root
+ENV PYTHONPATH="${PYTHONPATH}:${APP_HOME}"
+ENV PYTHONUNBUFFERED=1
 # install Java
 RUN mkdir -p /usr/share/man/man1 && \
   apt-get update -y && \
@@ -29,10 +31,10 @@ COPY . ./
 RUN pip install --upgrade pip setuptools
 RUN apt-get install -y libmagic1
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
-RUN pip install -r requirements.txt
+RUN pip install -e .
 RUN python -m nltk.downloader stopwords
 RUN python -m nltk.downloader punkt
 RUN python -c "import tiktoken; tiktoken.get_encoding(\"cl100k_base\")"
 RUN chmod +x run.sh
 EXPOSE 5001
-CMD ./run.sh
+# CMD ./run.sh
