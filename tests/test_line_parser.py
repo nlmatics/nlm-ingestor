@@ -1,6 +1,6 @@
 import unittest
 
-from ingestor import line_parser as lp
+from nlm_ingestor.ingestor import line_parser as lp
 
 
 class MyTest(unittest.TestCase):
@@ -364,7 +364,7 @@ class MyTest(unittest.TestCase):
         self.assertTrue(lp.Line("PROJECT OVERVIEW").is_header)
         self.assertTrue(lp.Line("PROPOSAL FOR SERVICES").is_header)
         self.assertTrue(lp.Line("Test").is_header)
-        self.assertTrue(lp.Line("4. 400 WESTLAKE PROJECT"))
+        self.assertTrue(lp.Line("4. 400 WESTLAKE PROJECT").is_header)
         self.assertTrue(lp.Line("13. Audit Rights").is_header)
         self.assertFalse(
             lp.Line(

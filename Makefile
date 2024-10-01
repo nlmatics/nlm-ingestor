@@ -24,3 +24,11 @@ run_fmt: format
 
 .PHONY: check
 check: lint
+
+.PHONY: test
+test:
+	poetry run pytest -vvs .
+
+.PHONY: download_nltk_data
+download_nltk_data:
+	poetry run python -m nltk.downloader punkt stopwords
