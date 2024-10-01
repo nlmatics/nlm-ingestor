@@ -69,3 +69,10 @@ clean:
 
 # Run all steps
 run-test-all: clean build run test clean
+.PHONY: test
+test:
+	poetry run pytest -vvs .
+
+.PHONY: download_nltk_data
+download_nltk_data:
+	poetry run python -m nltk.downloader punkt stopwords

@@ -4314,8 +4314,11 @@ class Doc:
                         ):
                             organized_blocks[j]["header_block_idx"] += 1
                         j += 1
-
-                    organized_blocks[idx] = header_block
+                    try:
+                        organized_blocks[i] = header_block
+                    except Exception as e:
+                        print(f"Error at line 4317: {e}")
+                        organized_blocks[len(organized_blocks) - 1] = header_block
                     if len(para_block["visual_lines"]):
                         para_props = line_parser.Line(para_block["block_text"])
                         if para_props.numbered_line:
