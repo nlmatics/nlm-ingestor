@@ -1,6 +1,6 @@
 import unittest
 
-from ingestor_utils.utils import sent_tokenize
+from nlm_ingestor.ingestor_utils.utils import sent_tokenize
 
 
 class PreProcessingTests(unittest.TestCase):

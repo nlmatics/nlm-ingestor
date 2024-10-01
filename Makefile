@@ -24,3 +24,7 @@ run_fmt: format
 
 .PHONY: check
 check: lint
+
+.PHONY: test
+test:
+	poetry run pytest -vvs .

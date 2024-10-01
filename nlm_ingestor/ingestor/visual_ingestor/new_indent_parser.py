@@ -275,6 +275,7 @@ class NewIndentParser(object):
                     prev_block
                     and prev_block["block_type"] in ["para", "list_item"]
                     and prev_block["block_text"].endswith(":")
+                    and curr_header
                 ):
                     block["level"] = curr_header["level"] + 1
                 elif prev_block and prev_block["block_type"] in ["list_item"]:
