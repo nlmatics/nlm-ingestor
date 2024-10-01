@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 from nlm_utils.storage import file_storage
-from pymongo import MongoClient
+from nlm_ingestor.ingestor import table_parser, visual_ingestor
 
 BASE_URL = (
     "http://host.docker.internal:5010"  # Adjust this if your port mapping is different
@@ -25,7 +25,8 @@ def process_document_with_container(doc_id, pdf_path):
     try:
         response = requests.post(url, files=files, params=params)
         response.raise_for_status()
-        print(response.json(), "response")
+        print("Response:")
+        print(json.dumps(response.json(), indent=2))
         return response.json()["return_dict"]["html"]
     except requests.RequestException as e:
         print(f"Error processing document {doc_id}: {str(e)}")
@@ -52,10 +53,20 @@ def retrive_pdf(doc_id):
     file_storage.download_document(doc_loc, file_location)
     return file_location
 
+def ingestor_debug():
+    visual_ingestor.HTML_DEBUG = False
+    visual_ingestor.LINE_DEBUG = False
+    visual_ingestor.MIXED_FONT_DEBUG = False
+    table_parser.TABLE_DEBUG = False
+    table_parser.TABLE_COL_DEBUG = False
+    visual_ingestor.HF_DEBUG = False
+    visual_ingestor.REORDER_DEBUG = False
+    visual_ingestor.MERGE_DEBUG = False
 
 def get_html(doc_id):
     pdf_file = f"/app/files/pdf/{doc_id}.pdf"
     html_file = f"/app/files/html/{doc_id}.html"
+    ingestor_debug()
 
     if os.path.isfile(html_file):
         print(f"HTML file {doc_id}.html found")
