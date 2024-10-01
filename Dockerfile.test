@@ -1,0 +1,61 @@
+# syntax=docker/dockerfile:experimental
+FROM python:3.11-bookworm
+
+# Set environment variables
+ENV APP_HOME=/app \
+  PYTHONPATH="${PYTHONPATH}:/root" \
+  PYTHONUNBUFFERED=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  libgomp1 \
+  openjdk-17-jre-headless \
+  libxml2-dev \
+  libxslt-dev \
+  build-essential \
+  libmagic-dev \
+  tesseract-ocr \
+  libtesseract-dev \
+  unzip \
+  git \
+  libmagic1 \
+  lsb-release \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install Tesseract OCR
+RUN echo "deb https://notesalexp.org/tesseract-ocr5/$(lsb_release -cs)/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/notesalexp.list > /dev/null \
+  && apt-get update -oAcquire::AllowInsecureRepositories=true \
+  && apt-get install notesalexp-keyring -oAcquire::AllowInsecureRepositories=true -y --allow-unauthenticated \
+  && apt-get update \
+  && apt-get install -y tesseract-ocr \
+  && wget -P /usr/share/tesseract-ocr/5/tessdata/ https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR ${APP_HOME}
+
+# Copy only the requirements file first
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --upgrade pip setuptools \
+  && pip install -r requirements.txt
+
+# Copy the rest of the application
+COPY . .
+
+# Install the application
+RUN pip install .
+
+# Download NLTK data and initialize tiktoken
+RUN python -m nltk.downloader stopwords punkt \
+  && python -c "import tiktoken; tiktoken.get_encoding(\"cl100k_base\")"
+
+# Set up SSH for GitHub
+RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+# Make run.sh executable
+RUN chmod +x run.sh
+
+EXPOSE 5001
+
+CMD ["./run.sh"]

@@ -1,26 +1,57 @@
 import argparse
 import codecs
+import json
 import multiprocessing as mp
 import os
 from itertools import groupby
+from urllib.parse import urljoin
 
+import requests
 from bs4 import BeautifulSoup
 from nlm_utils.storage import file_storage
-from pymongo import MongoClient
-from tika import parser
-
 from nlm_ingestor.ingestor import table_parser, visual_ingestor
 
-db_client = MongoClient(os.getenv("MONGO_HOST", "localhost"))
-db = db_client[os.getenv("MONGO_DATABASE", "doc-store-dev")]
+BASE_URL = (
+    "http://host.docker.internal:5010"  # Adjust this if your port mapping is different
+)
+
 html_dict = {}
 
-manager = mp.Manager()
-total_documents = manager.list()
-correct_tables = manager.list()
-missed_tables = manager.list()
-incorrect_tables = manager.list()
 
+def process_document_with_container(doc_id, pdf_path):
+    url = urljoin(BASE_URL, "/api/parseDocument")
+    files = {"file": open(pdf_path, "rb")}
+    params = {"renderFormat": "all", "useNewIndentParser": "yes", "applyOcr": "no"}
+    try:
+        response = requests.post(url, files=files, params=params)
+        response.raise_for_status()
+        print("Response:")
+        print(json.dumps(response.json(), indent=2))
+        return response.json()["return_dict"]["html"]
+    except requests.RequestException as e:
+        print(f"Error processing document {doc_id}: {str(e)}")
+        return None
+    finally:
+        files["file"].close()
+
+
+def pre_process_text(text):
+    text = str(text).replace('"', "'").replace("\\", "")
+    return text
+
+
+def retrive_pdf(doc_id):
+    file_location = f"/app/files/pdf/{doc_id}.pdf"  # /app for docker mount
+    if os.path.isfile(file_location):
+        print(f"file {doc_id}.pdf found")
+        return file_location
+
+    if not os.path.exists("/app/files/pdf"):  # /app for docker mount
+        os.makedirs("/app/files/pdf")  # /app for docker mount
+    # open(file_location, 'a').close()
+    doc_loc = db["document"].find_one({"id": doc_id})["doc_location"]
+    file_storage.download_document(doc_loc, file_location)
+    return file_location
 
 def ingestor_debug():
     visual_ingestor.HTML_DEBUG = False
@@ -32,71 +63,50 @@ def ingestor_debug():
     visual_ingestor.REORDER_DEBUG = False
     visual_ingestor.MERGE_DEBUG = False
 
-
-def pre_process_text(text):
-    text = str(text).replace('"', "'").replace("\\", "")
-    return text
-
-
-def retrive_pdf(doc_id):
-    file_location = f"files/pdf/{doc_id}.pdf"
-    if os.path.isfile(file_location):
-        print(f"file {doc_id}.pdf found")
-        return file_location
-
-    if not os.path.exists("files/pdf"):
-        os.makedirs("files/pdf")
-    # open(file_location, 'a').close()
-    doc_loc = db["document"].find_one({"id": doc_id})["doc_location"]
-    file_storage.download_document(doc_loc, file_location)
-    return file_location
-
-
-def retrive_html(doc_id):
-    file_location = f"files/html/{doc_id}.html"
-    if os.path.isfile(file_location):
-        print(f"file {doc_id}.html found")
-        return codecs.open(file_location, "r", "utf-8").read()
-    if not os.path.exists("files/html"):
-        os.makedirs("files/html")
-    return ""
-
-
-def get_html(doc_id, doc_type):
-    parsed = ""
-    if doc_type == "html":
-        parsed = retrive_html(doc_id)
-    if not parsed:
-        file_location = retrive_pdf(doc_id)
-        print("parsing pdf")
-        parsed = parser.from_file(file_location, xmlContent=True)
-        print("pdf parsed")
-        if not os.path.exists("files/html"):
-            os.makedirs("files/html")
-        f = open(f"files/html/{doc_id}.html", "w")
-        f.write(str(parsed))
-        f.close()
-    # download document to temp then parse it
-    soup = BeautifulSoup(str(parsed), "html.parser")
-    pages = soup.find_all("div", class_=lambda x: x not in ["annotation"])
-    print("starting visual ingestor")
+def get_html(doc_id):
+    pdf_file = f"/app/files/pdf/{doc_id}.pdf"
+    html_file = f"/app/files/html/{doc_id}.html"
     ingestor_debug()
-    parsed_doc = visual_ingestor.Doc(pages, [])
-    print("visual ingestor finishes")
-    # os.remove(file_location)
-    # get the html str to compare with
-    html_text = parsed_doc.html_str
-    return html_text
 
+    if os.path.isfile(html_file):
+        print(f"HTML file {doc_id}.html found")
+        with codecs.open(html_file, "r", "utf-8") as f:
+            return f.read()
+
+    if not os.path.isfile(pdf_file):
+        raise FileNotFoundError(f"PDF file {pdf_file} not found")
+
+    print(f"Processing PDF: {pdf_file}")
+    html_content = process_document_with_container(doc_id, pdf_file)
+    
+    if html_content is None:
+        raise Exception(f"Failed to process document {doc_id}")
+
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(html_file), exist_ok=True)
+
+    # Save the HTML content
+    with open(html_file, "w", encoding="utf-8") as f:
+        f.write(html_content)
+    print(f"Saved HTML content to {html_file}")
+
+    return html_content
 
 def compare_results(test, html_text):
-    print("comparing results")
+    print("Comparing results")
 
     soup = BeautifulSoup(html_text, "html.parser")
     page_data = []
     min_indent = 100000
-    for tag in soup.findAll("", {"page_idx": test["page_idx"]}):
+
+    print("Extracted text content:")
+    for tag in soup.find_all(text=True):
+        if tag.strip():
+            print(f"- {tag.strip()}")
+    print(test, "test")
+    for tag in soup.findAll("", {"page_idx": str(test["page_idx"])}):
         name = tag.name
+        print(tag, name, "\n\n")
         if name in ["td", "tr", "th"]:
             continue
         style = tag.get("style")
@@ -114,6 +124,9 @@ def compare_results(test, html_text):
     for p in page_data:
         p[1] = (p[1] - min_indent) // 20
 
+    print("Resulting page_data structure:")
+    print(json.dumps(page_data, indent=2))
+
     if page_data == test["page_data"]:
         return "correct", page_data
     else:
@@ -128,10 +141,8 @@ def print_results(
     incorrect_tables,
 ):
     def print_table(table):
-        # format table nicely before printing it
         s = ""
-        for i in range(len(table)):
-            row = table[i]
+        for i, row in enumerate(table):
             s += f"{i} {row} \n"
         return s
 
@@ -140,27 +151,21 @@ def print_results(
         workspace = db["workspace"].find_one({"id": doc["workspace_id"]})
         return f"Workspace: {workspace['name']}; Document: {doc['name']}, {doc['id']}"
 
-    # print stuff
     line_break = "======================================================== \n"
     row_break = "***** \n"
-    s = ""
-    s += line_break
-    if len(incorrect_tables) > 0:
-        s += line_break
-        s += "Incorrect Matches: \n"
+    s = line_break
+
+    if incorrect_tables:
+        s += line_break + "Incorrect Matches: \n"
         for match in incorrect_tables:
             s += row_break
             correct = match[0]
-            correct_pos = correct["page_data"]
-            s += f"{print_document_attrs(correct['doc_id'])}; Page: {correct['page_idx']}; location: {correct_pos}; \n"
-            s += "Stored: \n"
-            s += print_table(correct["page_data"])
-            s += "Parsed: \n"
-            s += print_table(match[1])
+            s += f"{print_document_attrs(correct['doc_id'])}; Page: {correct['page_idx']}; location: {correct['page_data']}; \n"
+            s += "Stored: \n" + print_table(correct["page_data"])
+            s += "Parsed: \n" + print_table(match[1])
 
-    if len(missed_tables) > 0:
-        s += line_break
-        s += "Missed Matches: \n"
+    if missed_tables:
+        s += line_break + "Missed Matches: \n"
         for match in missed_tables:
             s += row_break
             match_pos = f"{match['top']}, {match['left']} \n"
@@ -173,77 +178,59 @@ def print_results(
     return s
 
 
-def run_table_test(tests):
-    global correct_tables
-    global missed_tables
-    global incorrect_tables
-    global total_documents
-
-    local_correct_tables = []
-    local_missed_tables = []
-    local_incorrect_tables = []
-
-    for test in tests:
-        try:
-            doc_id = test["doc_id"]
-            print(f"document: {doc_id}")
-            if doc_id not in html_dict:
-                html_text = get_html(doc_id, doc_type=doc_type)
-                html_dict[doc_id] = html_text
-                total_documents.append(1)
-            else:
-                html_text = html_dict[doc_id]
-            result, data = compare_results(test, html_text)
-            if result == "correct":
-                correct_tables.append(test)
-                local_correct_tables.append(test)
-            elif result == "incorrect":
-                incorrect_tables.append([test, data])
-                local_incorrect_tables.append([test, data])
-            elif result == "missed":
-                missed_tables.append(test)
-                local_missed_tables.append(test)
-        except Exception as e:
-            print(e)
-    # response = print_results(
-    #     len(tests),
-    #     1,
-    #     local_correct_tables,
-    #     local_missed_tables,
-    #     local_incorrect_tables,
-    # )
-    # print(response)
-    return
+def run_table_test(test):
+    try:
+        doc_id = test["doc_id"]
+        print(f"Processing document: {doc_id}")
+        html_text = get_html(doc_id)
+        result, data = compare_results(test, html_text)
+        return result, data, test
+    except Exception as e:
+        print(f"Error processing document {doc_id}: {str(e)}")
+        return "error", str(e), test
 
 
-def run_test(doc_id="", doc_type="html", num_procs=1):
-    # doc_id: html_str
-    global correct_tables
-    global missed_tables
-    global incorrect_tables
-    global total_documents
-
+def run_test(doc_id="", num_procs=1):
     if doc_id:
-        query = {"doc_id": doc_id}
+        tests = [{"doc_id": doc_id, "page_idx": 0, "page_data": []}]
     else:
-        query = {}
-    # loop through every document in every collection
-    tests = [doc for doc in db["ingestor_page_test_cases"].find(query)]
-    tests.sort(key=lambda x: x["doc_id"])
-    groups = []
-    for k, v in groupby(tests, key=lambda x: x["doc_id"]):
-        groups.append(list(v))  # Store group iterator as a list
+        tests = []
+        pdf_dir = "/app/files/pdf"  # /app for docker mount
+        for filename in os.listdir(pdf_dir):
+            if filename.endswith(".pdf"):
+                doc_id = filename[:-4]
+                tests.append({"doc_id": doc_id, "page_idx": 0, "page_data": []})
 
-    if len(groups) > 1:
-        number_of_processes = num_procs
-        with mp.Pool(number_of_processes) as pool:
-            pool.map(run_table_test, groups)
+    tests.sort(key=lambda x: x["doc_id"])
+
+    if num_procs > 1:
+        with mp.Pool(num_procs) as pool:
+            results = pool.map(run_table_test, tests)
     else:
-        run_table_test(groups[0])
+        results = []
+        for test in tests:
+            try:
+                results.append(run_table_test(test))
+            except Exception as e:
+                print(f"Error processing test: {str(e)}")
+                results.append(("error", str(e), test))
+
+    correct_tables = []
+    missed_tables = []
+    incorrect_tables = []
+    total_documents = len(tests)
+
+    for result, data, test in results:
+        if result == "correct":
+            correct_tables.append(test)
+        elif result == "incorrect":
+            incorrect_tables.append([test, data])
+        elif result == "missed":
+            missed_tables.append(test)
 
     response = print_results(
         len(tests),
-        len(total_documents),
+        total_documents,
         correct_tables,
         missed_tables,
         incorrect_tables,
@@ -253,27 +240,14 @@ def run_test(doc_id="", doc_type="html", num_procs=1):
 
 
 if __name__ == "__main__":
-    doc_id = ""
-    doc_type = "html"
-    num_procs = 1
+    mp.freeze_support()  # This line is correct and should stay here
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--doc_id", required=False)
-    arg_parser.add_argument("--doc_type", required=False)
-    arg_parser.add_argument("--num_procs", required=False)
+    arg_parser.add_argument("--num_procs", required=False, type=int, default=1)
     args = arg_parser.parse_args()
 
-    doc_id_list = []
-    if args.doc_id:
-        doc_id_list = args.doc_id.split(",")
-    if args.doc_type:
-        doc_type = args.doc_type
-    if args.num_procs:
-        num_procs = int(args.num_procs)
-    print(
-        f"running script with -> docId: {doc_id_list}, docType: {doc_type}, num_procs: {num_procs}"
-    )
-    if len(doc_id_list) > 0:
-        for doc_id in doc_id_list:
-            run_test(doc_id=doc_id, doc_type=doc_type, num_procs=num_procs)
-    else:
-        run_test(doc_id="", doc_type=doc_type, num_procs=num_procs)
+    doc_id = args.doc_id if args.doc_id else ""
+    num_procs = args.num_procs
+
+    print(f"Running script with -> docId: {doc_id}, num_procs: {num_procs}")
+    run_test(doc_id=doc_id, num_procs=num_procs)
