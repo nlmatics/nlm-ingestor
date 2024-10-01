@@ -43,6 +43,7 @@ jobs:
           pip install poetry
           poetry config virtualenvs.create false --local
           poetry install --with dev
+          make download_nltk_data
 
 
       - name: Run tests
