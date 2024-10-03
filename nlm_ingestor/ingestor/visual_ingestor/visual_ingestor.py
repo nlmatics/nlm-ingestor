@@ -3333,10 +3333,10 @@ class Doc:
                 del block['visual_lines']
             if 'orig_vls' in block:
                 del block['orig_vls']
-            if 'effective_header' in block:
-                del block['effective_header']['visual_lines']
-            if 'effective_para' in block:
-                del block['effective_para']['visual_lines']
+            if 'effective_header' in block and 'visual_lines' in block['effective_header']:
+                 del block['effective_header']['visual_lines']
+            if 'effective_para' in block and 'visual_lines' in block['effective_para']:
+                 del block['effective_para']['visual_lines']
             if 'child_blocks' in block:
                 for child_block in block['child_blocks']:
                     if 'visual_lines' in child_block:
