@@ -17,6 +17,7 @@ env:
   ENVIRONMENT: prod-az
   HELM_REPO: ${{ vars.HELM_REPO }}
   HELM_VERSION: "1.1.3"
+  NAMESPACE: "service-platform"
   PORT: ${{ vars.PORT_PROD_AZ }}
   SERVICE_NAME: ${{ vars.SERVICE_NAME }}
   BASE_DOMAIN: ${{ vars.BASE_DOMAIN_PROD_AZ }}
@@ -105,7 +106,7 @@ jobs:
         run: |
           helm repo add spartan https://x-access-token:${{ steps.github-app-token.outputs.token }}@${{ env.HELM_REPO }}
           helm upgrade --install --wait --timeout 600s \
-            --namespace ${{ env.SERVICE_NAME }} \
+            --namespace ${{ env.NAMESPACE }} \
             -f k8s/${{ env.ENVIRONMENT }}/values.yaml \
             --version ${{ env.HELM_VERSION }} \
             ${{ env.SERVICE_NAME }} spartan/spartan
