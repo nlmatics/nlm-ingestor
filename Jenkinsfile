@@ -38,4 +38,24 @@ makeBuildPipeline {
       ]
     }
   }
+
+  helmValuesPath = { ctx, buildEnv ->
+    if (buildEnv.isDevDeploymentEnabled()) {
+      'k8s/dev/values.yaml'
+    } else if (buildEnv.isProdDeploymentEnabled()) {
+      'k8s/prod/values.yaml'
+    } else {
+      ctx.error 'unknown environment!! Abort!!'
+    }
+  }
+
+  helmValuesPath = { ctx, buildEnv ->
+    if (buildEnv.isDevDeploymentEnabled()) {
+      'k8s/dev/values.yaml'
+    } else if (buildEnv.isProdDeploymentEnabled()) {
+      'k8s/prod/values.yaml'
+    } else {
+      ctx.error 'unknown environment!! Abort!!'
+    }
+  }
 }
