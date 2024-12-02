@@ -16,7 +16,8 @@ env:
   DOCKER_REPO_DEV: "${{ vars.AWS_ACCOUNT_ID_DEV }}.dkr.ecr.${{ vars.AWS_REGION_DEV }}.amazonaws.com"
   ENVIRONMENT: prod-az
   HELM_REPO: ${{ vars.HELM_REPO }}
-  HELM_VERSION: "1.1.2"
+  HELM_VERSION: "1.1.3"
+  PORT: ${{ vars.PORT }}
   SERVICE_NAME: ${{ vars.SERVICE_NAME }}
   BASE_DOMAIN: ${{ vars.BASE_DOMAIN_PROD_AZ }}
 

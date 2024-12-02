@@ -20,7 +20,7 @@ env:
   DOCKER_REPO: "${{ vars.AWS_ACCOUNT_ID_DEV }}.dkr.ecr.${{ vars.AWS_REGION_DEV }}.amazonaws.com/${{ vars.SERVICE_NAME }}"
   ENVIRONMENT: dev
   HELM_REPO: ${{ vars.HELM_REPO }}
-  HELM_VERSION: "1.1.2"
+  HELM_VERSION: "1.1.3"
   SERVICE_NAME: ${{ vars.SERVICE_NAME }}
   BASE_DOMAIN: ${{ vars.BASE_DOMAIN_DEV }}
 

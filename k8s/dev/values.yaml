@@ -4,7 +4,7 @@ image:
   pullPolicy: IfNotPresent
   tag: "__IMAGE_TAG__"
 
-containerPort: 5001
+containerPort: "__PORT__"
 
 imagePullSecrets: [ ]
 nameOverride: ""
@@ -23,7 +23,7 @@ podAnnotations:
     [
       {
         "host": "%%host%%",
-        "port": "5001"
+        "port": "__PORT__"
       }
     ]
   ad.datadoghq.com/__SERVICE_NAME__.logs: |
@@ -62,14 +62,14 @@ ingress:
 livenessProbe:
   httpGet:
     path: /api/health/
-    port: 5001
+    port: __PORT__
   initialDelaySeconds: 120
   timeoutSeconds: 3
   failureThreshold: 6
 readinessProbe:
   httpGet:
     path: /api/health/
-    port: 5001
+    port: __PORT__
   initialDelaySeconds: 120
   timeoutSeconds: 3
   failureThreshold: 6
@@ -182,7 +182,4 @@ sidecars:
         memory: 0.25Gi
 
 datadog:
-  enabled: true
-
-sentry:
   enabled: true

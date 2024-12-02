@@ -8,6 +8,8 @@ from werkzeug.utils import secure_filename
 from nlm_ingestor.ingestor import ingestor_api
 from nlm_utils.utils import file_utils
 
+PORT = int(os.environ.get('PORT', 5001))
+
 app = Flask(__name__)
 
 # initialize logging
@@ -73,8 +75,8 @@ def parse_document(
     return make_response(jsonify({"status": status, "reason": msg}), rc)
 
 def main():
-    logger.info("Starting ingestor service..")
-    app.run(host="0.0.0.0", port=5001, debug=False)
+    logger.info(f"Starting ingestor service on port {PORT}..")
+    app.run(host="0.0.0.0", port=PORT, debug=False)
 
 if __name__ == "__main__":
     main()

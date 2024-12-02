@@ -31,21 +31,9 @@ jobs:
           token: ${{ steps.github-app-token.outputs.token }}
           ref: ${{ github.head_ref }}
 
-      - name: Check if CHANGELOG.md contains "## [Unreleased]"
-        id: check_changelog
-        run: |
-          if grep -q '## \[Unreleased\]' CHANGELOG.md; then
-            echo "Changelog contains '## [Unreleased]'. Skipping the pipeline."
-            exit 0
-          else
-            echo "Changelog does not contain '## [Unreleased]'. Continuing the pipeline."
-          fi
-        continue-on-error: true
-
       - uses: taiki-e/create-gh-release-action@v1
         if: ${{ success() }}
         with:
-          changelog: CHANGELOG.md
           title: $version
           branch: 'master|v[0-9]+'
           token: ${{ steps.github-app-token.outputs.token }}
