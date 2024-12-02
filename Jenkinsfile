@@ -13,6 +13,8 @@ makeBuildPipeline {
   dockerFilePath = '/'
   dockerFileName = 'Dockerfile.prod'
 
+  deployVarsMode = 'k8s'
+
   nodeBuildLabel = 'heavy'
 
   helmStageTimeout = 30
