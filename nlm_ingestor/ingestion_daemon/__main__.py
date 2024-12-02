@@ -16,6 +16,7 @@ logger.setLevel(cfg.log_level())
 
 @app.route('/', methods=['GET'])
 @app.route('/api/health', methods=['GET'])
+@app.route('/api/health/', methods=['GET'])
 def health_check():
     return 'Service is running', 200
 
