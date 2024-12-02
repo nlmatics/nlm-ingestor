@@ -23,7 +23,7 @@ podAnnotations:
     [
       {
         "host": "%%host%%",
-        "port": "9090"
+        "port": "5001"
       }
     ]
   ad.datadoghq.com/__SERVICE_NAME__.logs: |
@@ -62,14 +62,14 @@ ingress:
 livenessProbe:
   httpGet:
     path: /api/health/
-    port: 9090
+    port: 5001
   initialDelaySeconds: 120
   timeoutSeconds: 3
   failureThreshold: 6
 readinessProbe:
   httpGet:
     path: /api/health/
-    port: 9090
+    port: 5001
   initialDelaySeconds: 120
   timeoutSeconds: 3
   failureThreshold: 6
