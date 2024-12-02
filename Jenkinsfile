@@ -11,7 +11,7 @@ makeBuildPipeline {
   ]
 
   dockerFilePath = '/'
-  dockerFileName = 'Dockerfile'
+  dockerFileName = 'Dockerfile.prod'
 
   nodeBuildLabel = 'heavy'
 
