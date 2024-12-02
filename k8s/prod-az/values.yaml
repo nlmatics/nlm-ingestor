@@ -4,7 +4,7 @@ image:
   pullPolicy: IfNotPresent
   tag: "__IMAGE_TAG__"
 
-containerPort: 9090
+containerPort: 5001
 
 imagePullSecrets: [ ]
 nameOverride: ""
