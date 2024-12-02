@@ -73,7 +73,6 @@ jobs:
       - name: Pull images from DEV for promotion to Prod AZ
         run: |
           docker pull "$SERVICE_IMAGE_DEV"
-          docker pull "$SERVICE_IMAGE_DEV"-migration
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -89,9 +88,6 @@ jobs:
         run: |
           docker tag "$SERVICE_IMAGE_DEV" "$SERVICE_IMAGE"
           docker push "$SERVICE_IMAGE"
-
-          docker tag "$SERVICE_IMAGE_DEV"-migration "$SERVICE_IMAGE"-migration
-          docker push "$SERVICE_IMAGE"-migration
 
       - name: "Update values for k8s files"
         uses: cschleiden/replace-tokens@v1

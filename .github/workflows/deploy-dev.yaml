@@ -115,16 +115,6 @@ jobs:
             --build-arg APP_VERSION=$APP_VERSION \
             --push .
 
-      - name: Build and Push the flyway Docker image
-        working-directory: src/service_platform/sql
-        run: |
-          DOCKER_MIGRATION_IMAGE_TAG="$IMAGE_TAG"-migration
-          docker buildx build \
-            --platform "$DOCKER_PLATFORM" \
-            -t "$DOCKER_REPO":"$DOCKER_MIGRATION_IMAGE_TAG" \
-            -f Dockerfile.migration \
-            --push .
-
       - name: "Update values for k8s files"
         uses: cschleiden/replace-tokens@v1
         with:
