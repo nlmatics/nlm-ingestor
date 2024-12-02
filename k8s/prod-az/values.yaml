@@ -1,0 +1,185 @@
+replicaCount: 1
+image:
+  repository: __DOCKER_REPO__/__SERVICE_NAME__
+  pullPolicy: IfNotPresent
+  tag: "__IMAGE_TAG__"
+
+containerPort: 9090
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: "__SERVICE_NAME__"
+containerName: "__SERVICE_NAME__"
+
+serviceAccount:
+  create: false
+  annotations: { }
+  name: "__SERVICE_NAME__"
+
+podAnnotations:
+  ad.datadoghq.com/__SERVICE_NAME__.check_names: '["__SERVICE_NAME__"]'
+  ad.datadoghq.com/__SERVICE_NAME__.init_configs: '[{}]'
+  ad.datadoghq.com/__SERVICE_NAME__.instances: |
+    [
+      {
+        "host": "%%host%%",
+        "port": "9090"
+      }
+    ]
+  ad.datadoghq.com/__SERVICE_NAME__.logs: |
+    [{
+      "type": "file",
+      "path": "/var/log/application/app.log",
+      "source": "eks-cluster",
+      "service": "__SERVICE_NAME__",
+      "env" : "__ENVIRONMENT__",
+      "auto_multi_line_detection": true
+    }]
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/group.name: "external"
+    alb.ingress.kubernetes.io/healthcheck-path: "/api/health/"
+    alb.ingress.kubernetes.io/listen-ports: "[{\"HTTP\": 80}, {\"HTTPS\": 443}]"
+    alb.ingress.kubernetes.io/scheme: "internet-facing"
+    alb.ingress.kubernetes.io/target-type: "ip"
+    kubernetes.io/ingress.class: "alb"
+  hosts:
+    - host: "__SERVICE_NAME__.__BASE_DOMAIN__"
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+
+livenessProbe:
+  httpGet:
+    path: /api/health/
+    port: 9090
+  initialDelaySeconds: 120
+  timeoutSeconds: 3
+  failureThreshold: 6
+readinessProbe:
+  httpGet:
+    path: /api/health/
+    port: 9090
+  initialDelaySeconds: 120
+  timeoutSeconds: 3
+  failureThreshold: 6
+
+resources:
+  limits:
+    cpu: 1950m
+    memory: 6Gi
+    ephemeral-storage: 50Gi
+  requests:
+    cpu: 1950m
+    memory: 6Gi
+    ephemeral-storage: 50Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 600
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 30
+
+nodeSelector: {}
+  # usage: gpu
+  # team: ml-team
+  # kubernetes.io/instance-type: c8g.medium
+
+tolerations: []
+# - key: "doc_parser"
+#   operator: "Equal"
+#   value: "true"
+#   effect: "NoSchedule"
+
+affinity: { }
+
+testConnection:
+  enabled: false
+
+secret:
+  externalSecretEnv:
+    enabled: true
+    name: __SERVICE_NAME__-secret
+
+configMap:
+  externalConfigMapEnv:
+    enabled: true
+    name: __SERVICE_NAME__-config-map
+
+extraEnvs:
+  - name: DD_APM_FILTER_TAGS_REGEX_REJECT
+    value: "http.route:/health"
+  - name: DD_CLUSTER_AGENT_URL
+    value: "https://datadog-cluster-agent.datadog:5005"
+  - name: DD_EKS_FARGATE
+    value: "true"
+  - name: DD_ENV
+    value: "__ENVIRONMENT__"
+  - name: DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL
+    value: "true"
+  - name: DD_LOGS_ENABLED
+    value: "true"
+  - name: DD_LOGS_INJECTION
+    value: "true"
+  - name: DD_PROCESS_AGENT_ENABLED
+    value: "true"
+  - name: DD_PROFILING_ENABLED
+    value: "true"
+  - name: DD_SERVICE
+    value: "__SERVICE_NAME__"
+  - name: DD_VERSION
+    value: "__DD_VERSION__"
+  - name: LOG_FILE
+    value: "/var/log/application/app.log"
+
+sidecars:
+  - name: datadog-agent
+    image: "__DD_AGENT_IMAGE__"
+    ports:
+      - containerPort: 8125
+        name: dogstatsdport
+        protocol: UDP
+      - containerPort: 8126
+        name: traceport
+        protocol: TCP
+    sharedVolume:
+      mountPath: /var/log/application/
+    resources:
+      limits:
+        cpu: 200m
+        memory: 0.25Gi
+      requests:
+        cpu: 200m
+        memory: 0.25Gi
+
+datadog:
+  enabled: true

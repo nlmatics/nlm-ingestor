@@ -1,0 +1,45 @@
+name: Create Major Tag
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Create GitHub App Token
+        uses: actions/create-github-app-token@v1
+        id: github-app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.github-app-token.outputs.token }}
+          ref: ${{ github.head_ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install tomlkit
+
+      - name: Bump version
+        run: |
+          git config --global --add safe.directory /harness
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions"
+
+          ./tools/create_release.sh major
+        env:
+          GITHUB_TOKEN: ${{ steps.github-app-token.outputs.token }}

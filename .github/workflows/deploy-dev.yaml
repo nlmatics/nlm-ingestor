@@ -1,0 +1,221 @@
+name: DEV - Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'k8s/dev/*'
+      - 'src/**/*'
+      - 'Dockerfile'
+      - 'poetry.lock'
+  workflow_dispatch:
+
+env:
+  AWS_EKS_CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER_NAME_DEV }}
+  AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID_DEV }}
+  AWS_REGION: ${{ vars.AWS_REGION_DEV }}
+  AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME_DEV }}
+  DD_AGENT_IMAGE: ${{ vars.DD_AGENT_IMAGE_DEV }}
+  DOCKER_PLATFORM: "linux/amd64"
+  DOCKER_REPO: "${{ vars.AWS_ACCOUNT_ID_DEV }}.dkr.ecr.${{ vars.AWS_REGION_DEV }}.amazonaws.com/${{ vars.SERVICE_NAME }}"
+  ENVIRONMENT: dev
+  HELM_REPO: ${{ vars.HELM_REPO }}
+  HELM_VERSION: "1.1.2"
+  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  BASE_DOMAIN: ${{ vars.BASE_DOMAIN_DEV }}
+
+jobs:
+  check_disk_space:
+    name: Check Disk Space
+    runs-on: self-hosted
+    steps:
+      - name: Check available disk space
+        id: check_space
+        run: |
+          # Get the available disk space in GB
+          available_space=$(df -BG / | tail -1 | awk '{print $4}' | sed 's/G//')
+          echo "Available space: ${available_space}GB"
+          # Set an output for the condition in the next step
+          echo "space=${available_space}" >> $GITHUB_OUTPUT
+
+      - name: Prune Docker if space is low
+        if: ${{ steps.check_space.outputs.space < 10 }} # Condition to check if space is less than 10GB
+        run: |
+          echo "Disk space is low (${available_space}GB). Running docker system prune..."
+          docker system prune -f
+        shell: bash
+
+  build_and_push_images:
+    name: Build and Push Docker Images
+    runs-on: ["self-hosted", "Linux", "ARM64"]
+    needs: [check_disk_space]
+
+    permissions:
+      contents: "read"
+      id-token: write
+
+    steps:
+      - name: Create GitHub App Token
+        uses: actions/create-github-app-token@v1
+        id: github-app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          owner: ${{ github.repository_owner }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 3
+          ref: ${{ github.head_ref }}
+          token: ${{ steps.github-app-token.outputs.token }}
+          # Make sure the value of GITHUB_TOKEN will not be persisted in repo's config
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+# FIXME: consolidate SQL script files so that we can enable this step
+#      - name: Run migration filename validation
+#        run: |
+#          python src/utils/validate_migration_filenames.py
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          role-session-name: gh-actions
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Prepare docker image tags
+        run: |
+          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)
+          CURRENT_DATE=$(date +%Y%m%d)
+          IMAGE_TAG="${{ env.ENVIRONMENT }}-$CURRENT_DATE-$SHORT_SHA"
+
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+
+      - name: Extract project version from the pyproject.toml file
+        run: |
+          APP_VERSION=$(grep '^version =' pyproject.toml | awk -F'"' '{print $2}')
+          echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
+
+      - name: Build and Push the Docker image
+        run: |
+          docker buildx build \
+            --platform "$DOCKER_PLATFORM" \
+            -t "$DOCKER_REPO":"$IMAGE_TAG" \
+            --build-arg APP_VERSION=$APP_VERSION \
+            --push .
+
+      - name: Build and Push the flyway Docker image
+        working-directory: src/service_platform/sql
+        run: |
+          DOCKER_MIGRATION_IMAGE_TAG="$IMAGE_TAG"-migration
+          docker buildx build \
+            --platform "$DOCKER_PLATFORM" \
+            -t "$DOCKER_REPO":"$DOCKER_MIGRATION_IMAGE_TAG" \
+            -f Dockerfile.migration \
+            --push .
+
+      - name: "Update values for k8s files"
+        uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: "__"
+          tokenSuffix: "__"
+          files: '["k8s/dev/**/*.yaml"]'
+
+      - name: Configure Kubernetes client
+        uses: silverlyra/setup-aws-eks@v0.1
+        with:
+          cluster: ${{ env.AWS_EKS_CLUSTER_NAME }}
+
+      - name: "Helm Install for Service API"
+        run: |
+          helm repo add spartan https://x-access-token:${{ steps.github-app-token.outputs.token }}@${{ env.HELM_REPO }}
+          helm upgrade --install --wait --timeout 600s \
+            --namespace ${{ env.SERVICE_NAME }} \
+            -f k8s/${{ env.ENVIRONMENT }}/values.yaml \
+            --version ${{ env.HELM_VERSION }} \
+            ${{ env.SERVICE_NAME }} spartan/spartan
+
+      - name: "Extract Git info"
+        run: |
+          echo "GITHUB_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>' | xargs)" >> $GITHUB_ENV
+          echo "GITHUB_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "GITHUB_REPO=$(git config --get remote.origin.url)" >> $GITHUB_ENV
+
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          GITHUB_COMMITS=$(git --no-pager log --pretty=format:'%h (%an) %s' -n3 --no-color |  while read line || [ -n "$line" ]; do echo -n "- $line \\n"; done)
+          echo "GITHUB_COMMITS<<$EOF" >> "$GITHUB_ENV"
+          echo $GITHUB_COMMITS | sed "s/\"/'/g" >> "$GITHUB_ENV"
+          echo "$EOF" >> "$GITHUB_ENV"
+
+      - name: Slack Notification
+        id: slack
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":rocket: *${{ env.SERVICE_NAME }} - Deploy to DEV*"
+                  }
+                },{
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Created by:* ${{ env.GITHUB_AUTHOR }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*API Docs:* https://${{ env.SERVICE_NAME }}.${{ env.BASE_DOMAIN }}/api/docs"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "```${{ env.GITHUB_COMMITS }}```"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View changes"
+                      },
+                      "style": "primary",
+                      "url": "${{ env.GITHUB_REPO }}/commit/${{ env.GITHUB_REVISION}}"
+                    },
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Run"
+                      },
+                      "style": "primary",
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
