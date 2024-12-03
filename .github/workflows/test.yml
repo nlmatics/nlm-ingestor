@@ -84,4 +84,5 @@ jobs:
           make test-pdf-ingestor 2>&1 | tee test-output.log || {
             echo "=== Tika Server Logs ==="
             cat tika.log || true
-            echo "
+            echo "=== End of Tika Logs ==="
+          }
