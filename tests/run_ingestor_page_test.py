@@ -125,6 +125,11 @@ def run_test(doc_id=""):
                 for i, word in enumerate(longest_missing, 1):
                     logger.info(f"{i}. ({len(word)} chars) {word}")
 
+            # Assert that the coverage is over 93%
+            assert (
+                comparison["coverage"] > 0.93
+            ), f"Text coverage for {pdf_id} is below 93%: {comparison['coverage']*100:.2f}%"
+
         except Exception as e:
             logger.error(f"Error processing {pdf_id}: {str(e)}", exc_info=True)
             results.append((pdf_id, {"error": str(e)}))
