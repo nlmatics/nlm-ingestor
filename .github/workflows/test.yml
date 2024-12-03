@@ -49,17 +49,24 @@ jobs:
           path: jars
           key: ${{ runner.os }}-tika-server-2.9.2
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install poetry
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3-dev
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install poetry==1.4.2
           poetry config virtualenvs.create false --local
-          poetry install --with dev
-          make download_nltk_data
+          poetry install --no-interaction --no-ansi --with dev
+
+      - name: Download NLTK data
+        run: |
+          poetry run python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
 
       - name: Run regular tests
         run: |
-          # Cleanup any existing processes
           pkill -f "tika" > /dev/null 2>&1 || true
           poetry run pytest tests/
 
@@ -73,7 +80,4 @@ jobs:
           make test-pdf-ingestor 2>&1 | tee test-output.log || {
             echo "=== Tika Server Logs ==="
             cat tika.log || true
-            echo "=== Test Output Logs ==="
-            cat test-output.log || true
-            exit 1
-          }
+            echo "
