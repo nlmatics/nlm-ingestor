@@ -59,16 +59,21 @@ jobs:
 
       - name: Run regular tests
         run: |
-          # Ensure Tika cleanup doesn't cause failure
-          pkill -f "tika" || true
-          poetry run make test
-
+          set +e  # Don't exit on error
+          pkill -f "tika" > /dev/null 2>&1  # Suppress output and errors
+          set -e  # Resume exit on error
+          poetry run pytest tests/ --ignore=tests/ingestors/test_pdf_ingestor.py
+  
       - name: Run PDF ingestor tests with Tika
         run: |
-          pkill -f "tika" || true
-          poetry run make test-pdf-ingestor
+          set +e
+          pkill -f "tika" > /dev/null 2>&1
+          set -e
+          poetry run pytest tests/ingestors/test_pdf_ingestor.py
 
       - name: Run all tests with Tika
         run: |
-          pkill -f "tika" || true
-          poetry run make test-with-tika
+          set +e
+          pkill -f "tika" > /dev/null 2>&1
+          set -e
+          poetry run pytest tests/
