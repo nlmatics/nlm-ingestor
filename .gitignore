@@ -144,3 +144,6 @@ dmypy.json
 
 # Tika Server
 .tika.pid
+
+# test debug files
+files/debug/*
