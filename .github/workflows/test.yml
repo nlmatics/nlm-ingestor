@@ -63,20 +63,20 @@ jobs:
           pkill -f "tika" > /dev/null 2>&1  # Suppress output and errors
           set -e  # Resume exit on error
           poetry run pytest tests/
-  
-          - name: Run PDF ingestor tests with Tika
-          run: |
-            # Clean up any existing Tika processes
-            set +e
-            pkill -f "tika" > /dev/null 2>&1
-            rm -f .tika.pid tika.log
-            set -e
-  
-            # Run tests and capture all output
-            make test-pdf-ingestor 2>&1 | tee test-output.log || {
-              echo "=== Tika Server Logs ==="
-              cat tika.log || true
-              echo "=== Test Output Logs ==="
-              cat test-output.log || true
-              exit 1
-            }
+
+      - name: Run PDF ingestor tests with Tika
+        run: |
+          # Clean up any existing Tika processes
+          set +e
+          pkill -f "tika" > /dev/null 2>&1
+          rm -f .tika.pid tika.log
+          set -e
+
+          # Run tests and capture all output
+          make test-pdf-ingestor 2>&1 | tee test-output.log || {
+            echo "=== Tika Server Logs ==="
+            cat tika.log || true
+            echo "=== Test Output Logs ==="
+            cat test-output.log || true
+            exit 1
+          }
