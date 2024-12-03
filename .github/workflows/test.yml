@@ -58,7 +58,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install poetry
-          poetry export -f requirements.txt --without-hashes -o requirements.txt
+          poetry export -f requirements.txt --without-hashes --with dev -o requirements.txt
 
       - name: Install Python dependencies with pip
         run: |
