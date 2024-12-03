@@ -59,13 +59,14 @@ jobs:
 
       - name: Run regular tests
         run: |
-          pkill -f "tika" > /dev/null 2>&1  # Suppress output and errors
+          # Cleanup any existing processes
+          pkill -f "tika" > /dev/null 2>&1 || true
           poetry run pytest tests/
 
       - name: Run PDF ingestor tests with Tika
         run: |
           # Clean up any existing Tika processes
-          pkill -f "tika" > /dev/null 2>&1
+          pkill -f "tika" > /dev/null 2>&1 || true
           rm -f .tika.pid tika.log
 
           # Run tests and capture all output
