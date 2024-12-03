@@ -57,7 +57,7 @@ jobs:
           poetry install --with dev
           make download_nltk_data
 
-        - name: Run regular tests
+      - name: Run regular tests
         run: |
           # Ensure Tika cleanup doesn't cause failure
           pkill -f "tika" || true
