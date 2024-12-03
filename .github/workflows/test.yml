@@ -25,6 +25,12 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
       # Caching Python dependencies
       - name: Cache pip dependencies
         uses: actions/cache@v2
@@ -36,6 +42,12 @@ jobs:
             ${{ runner.os }}-pip-
             ${{ runner.os }}-
 
+      # Cache Tika Server
+      - name: Cache Tika Server
+        uses: actions/cache@v2
+        with:
+          path: jars
+          key: ${{ runner.os }}-tika-server-2.9.2
 
       - name: Install dependencies
         run: |
@@ -45,7 +57,14 @@ jobs:
           poetry install --with dev
           make download_nltk_data
 
-
-      - name: Run tests
+      - name: Run regular tests
         run: |
           poetry run make test
+
+      - name: Run PDF ingestor tests with Tika
+        run: |
+          poetry run make test-pdf-ingestor
+
+      - name: Run all tests with Tika
+        run: |
+          poetry run make test-with-tika

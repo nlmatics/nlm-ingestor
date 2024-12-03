@@ -1,0 +1,122 @@
+INFO  [main] 21:52:11,998 org.apache.tika.server.core.TikaServerProcess Starting Apache Tika 2.9.3-SNAPSHOT server
+INFO  [main] 21:52:13,019 org.apache.tika.server.core.TikaServerProcess loading resource from SPI: class org.apache.tika.server.standard.resource.XMPMetadataResource
+Dec 02, 2024 9:52:13 PM org.apache.cxf.endpoint.ServerImpl initDestination
+INFO: Setting the server's publish address to be http://localhost:9998/
+INFO  [main] 21:52:13,323 org.eclipse.jetty.util.log Logging initialized @2262ms to org.eclipse.jetty.util.log.Slf4jLog
+INFO  [main] 21:52:13,370 org.eclipse.jetty.server.Server jetty-9.4.54.v20240208; built: 2024-02-08T19:42:39.027Z; git: cef3fbd6d736a21e7d541a5db490381d95a2047d; jvm 1.8.0_271-b09
+Dec 02, 2024 9:52:13 PM org.apache.cxf.transport.http_jetty.JettyHTTPServerEngine addServant
+SEVERE: Could not start Jetty server on port 9,998: Failed to bind to localhost/127.0.0.1:9998
+INFO  [main] 21:52:13,411 org.eclipse.jetty.server.AbstractConnector Stopped ServerConnector@33e01298{HTTP/1.1, (http/1.1)}{localhost:9998}
+WARN  [main] 21:52:13,414 org.apache.tika.server.core.TikaServerProcess exception starting server
+org.apache.cxf.service.factory.ServiceConstructionException: null
+	at org.apache.cxf.jaxrs.JAXRSServerFactoryBean.create(JAXRSServerFactoryBean.java:220) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.tika.server.core.TikaServerProcess.startServer(TikaServerProcess.java:157) [tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.tika.server.core.TikaServerProcess.main(TikaServerProcess.java:135) [tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+Caused by: org.apache.cxf.interceptor.Fault: Could not start Jetty server on port 9,998: Failed to bind to localhost/127.0.0.1:9998
+	at org.apache.cxf.transport.http_jetty.JettyHTTPServerEngine.addServant(JettyHTTPServerEngine.java:488) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.http_jetty.JettyHTTPDestination.activate(JettyHTTPDestination.java:187) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.AbstractObservable.setMessageObserver(AbstractObservable.java:53) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.binding.AbstractBindingFactory.addListener(AbstractBindingFactory.java:95) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSBindingFactory.addListener(JAXRSBindingFactory.java:91) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.endpoint.ServerImpl.start(ServerImpl.java:130) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSServerFactoryBean.create(JAXRSServerFactoryBean.java:208) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	... 2 more
+Caused by: java.io.IOException: Failed to bind to localhost/127.0.0.1:9998
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:349) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:310) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.AbstractNetworkConnector.doStart(AbstractNetworkConnector.java:80) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.ServerConnector.doStart(ServerConnector.java:234) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.Server.doStart(Server.java:401) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.http_jetty.JettyHTTPServerEngine.addServant(JettyHTTPServerEngine.java:477) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.http_jetty.JettyHTTPDestination.activate(JettyHTTPDestination.java:187) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.AbstractObservable.setMessageObserver(AbstractObservable.java:53) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.binding.AbstractBindingFactory.addListener(AbstractBindingFactory.java:95) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSBindingFactory.addListener(JAXRSBindingFactory.java:91) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.endpoint.ServerImpl.start(ServerImpl.java:130) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSServerFactoryBean.create(JAXRSServerFactoryBean.java:208) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	... 2 more
+Caused by: java.net.BindException: Address already in use
+	at sun.nio.ch.Net.bind0(Native Method) ~[?:1.8.0_271]
+	at sun.nio.ch.Net.bind(Net.java:444) ~[?:1.8.0_271]
+	at sun.nio.ch.Net.bind(Net.java:436) ~[?:1.8.0_271]
+	at sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:225) ~[?:1.8.0_271]
+	at sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:74) ~[?:1.8.0_271]
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:344) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:310) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.AbstractNetworkConnector.doStart(AbstractNetworkConnector.java:80) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.ServerConnector.doStart(ServerConnector.java:234) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.Server.doStart(Server.java:401) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.http_jetty.JettyHTTPServerEngine.addServant(JettyHTTPServerEngine.java:477) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.http_jetty.JettyHTTPDestination.activate(JettyHTTPDestination.java:187) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.AbstractObservable.setMessageObserver(AbstractObservable.java:53) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.binding.AbstractBindingFactory.addListener(AbstractBindingFactory.java:95) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSBindingFactory.addListener(JAXRSBindingFactory.java:91) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.endpoint.ServerImpl.start(ServerImpl.java:130) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSServerFactoryBean.create(JAXRSServerFactoryBean.java:208) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	... 2 more
+WARN  [pool-2-thread-1] 21:52:13,510 org.apache.tika.server.core.TikaServerWatchDog WatchDog observes bind exception on retry 0. Will retry 30 times.
+INFO  [main] 21:52:15,555 org.apache.tika.server.core.TikaServerProcess Starting Apache Tika 2.9.3-SNAPSHOT server
+INFO  [main] 21:52:16,555 org.apache.tika.server.core.TikaServerProcess loading resource from SPI: class org.apache.tika.server.standard.resource.XMPMetadataResource
+Dec 02, 2024 9:52:16 PM org.apache.cxf.endpoint.ServerImpl initDestination
+INFO: Setting the server's publish address to be http://localhost:9998/
+INFO  [main] 21:52:16,900 org.eclipse.jetty.util.log Logging initialized @2335ms to org.eclipse.jetty.util.log.Slf4jLog
+INFO  [main] 21:52:16,951 org.eclipse.jetty.server.Server jetty-9.4.54.v20240208; built: 2024-02-08T19:42:39.027Z; git: cef3fbd6d736a21e7d541a5db490381d95a2047d; jvm 1.8.0_271-b09
+Dec 02, 2024 9:52:16 PM org.apache.cxf.transport.http_jetty.JettyHTTPServerEngine addServant
+SEVERE: Could not start Jetty server on port 9,998: Failed to bind to localhost/127.0.0.1:9998
+INFO  [main] 21:52:16,995 org.eclipse.jetty.server.AbstractConnector Stopped ServerConnector@a5b0b86{HTTP/1.1, (http/1.1)}{localhost:9998}
+WARN  [main] 21:52:16,999 org.apache.tika.server.core.TikaServerProcess exception starting server
+org.apache.cxf.service.factory.ServiceConstructionException: null
+	at org.apache.cxf.jaxrs.JAXRSServerFactoryBean.create(JAXRSServerFactoryBean.java:220) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.tika.server.core.TikaServerProcess.startServer(TikaServerProcess.java:157) [tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.tika.server.core.TikaServerProcess.main(TikaServerProcess.java:135) [tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+Caused by: org.apache.cxf.interceptor.Fault: Could not start Jetty server on port 9,998: Failed to bind to localhost/127.0.0.1:9998
+	at org.apache.cxf.transport.http_jetty.JettyHTTPServerEngine.addServant(JettyHTTPServerEngine.java:488) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.http_jetty.JettyHTTPDestination.activate(JettyHTTPDestination.java:187) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.AbstractObservable.setMessageObserver(AbstractObservable.java:53) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.binding.AbstractBindingFactory.addListener(AbstractBindingFactory.java:95) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSBindingFactory.addListener(JAXRSBindingFactory.java:91) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.endpoint.ServerImpl.start(ServerImpl.java:130) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSServerFactoryBean.create(JAXRSServerFactoryBean.java:208) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	... 2 more
+Caused by: java.io.IOException: Failed to bind to localhost/127.0.0.1:9998
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:349) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:310) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.AbstractNetworkConnector.doStart(AbstractNetworkConnector.java:80) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.ServerConnector.doStart(ServerConnector.java:234) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.Server.doStart(Server.java:401) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.http_jetty.JettyHTTPServerEngine.addServant(JettyHTTPServerEngine.java:477) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.http_jetty.JettyHTTPDestination.activate(JettyHTTPDestination.java:187) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.AbstractObservable.setMessageObserver(AbstractObservable.java:53) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.binding.AbstractBindingFactory.addListener(AbstractBindingFactory.java:95) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSBindingFactory.addListener(JAXRSBindingFactory.java:91) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.endpoint.ServerImpl.start(ServerImpl.java:130) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSServerFactoryBean.create(JAXRSServerFactoryBean.java:208) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	... 2 more
+Caused by: java.net.BindException: Address already in use
+	at sun.nio.ch.Net.bind0(Native Method) ~[?:1.8.0_271]
+	at sun.nio.ch.Net.bind(Net.java:444) ~[?:1.8.0_271]
+	at sun.nio.ch.Net.bind(Net.java:436) ~[?:1.8.0_271]
+	at sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:225) ~[?:1.8.0_271]
+	at sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:74) ~[?:1.8.0_271]
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:344) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:310) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.AbstractNetworkConnector.doStart(AbstractNetworkConnector.java:80) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.ServerConnector.doStart(ServerConnector.java:234) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.server.Server.doStart(Server.java:401) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.http_jetty.JettyHTTPServerEngine.addServant(JettyHTTPServerEngine.java:477) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.http_jetty.JettyHTTPDestination.activate(JettyHTTPDestination.java:187) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.transport.AbstractObservable.setMessageObserver(AbstractObservable.java:53) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.binding.AbstractBindingFactory.addListener(AbstractBindingFactory.java:95) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSBindingFactory.addListener(JAXRSBindingFactory.java:91) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.endpoint.ServerImpl.start(ServerImpl.java:130) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	at org.apache.cxf.jaxrs.JAXRSServerFactoryBean.create(JAXRSServerFactoryBean.java:208) ~[tika-server-standard-nlm-modified-2.9.2_v2.jar:2.9.3-SNAPSHOT]
+	... 2 more
+WARN  [pool-2-thread-1] 21:52:17,020 org.apache.tika.server.core.TikaServerWatchDog WatchDog observes bind exception on retry 1. Will retry 30 times.

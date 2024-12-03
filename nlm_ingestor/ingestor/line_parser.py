@@ -290,9 +290,9 @@ class Line:
 
         # Determine if there are enough title-like words to consider the line a header
         has_enough_titles = title_ratio > 0.9 and self.eff_word_count < 10
-        print(
-            f"title_ratio: {title_ratio}, eff_word_count: {self.eff_word_count}, self.number_count: {self.number_count} for words: {self.text}"
-        )
+        # print(
+        #     f"title_ratio: {title_ratio}, eff_word_count: {self.eff_word_count}, self.number_count: {self.number_count} for words: {self.text}"
+        # )
 
         # Assess the overall header structure based on various conditions
         has_header_structure = (

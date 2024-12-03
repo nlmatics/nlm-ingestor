@@ -48,6 +48,7 @@ class PDFIngestor:
                 use_new_indent_parser=use_new_indent_parser,
             )
         )
+        print("parsed blocks")
         return_dict = {
             "page_dim": page_dim,
             "num_pages": num_pages,
@@ -94,6 +95,7 @@ def parse_pdf(doc_location, parse_options):
         logger.info(
             f"PDF OCR finished in {default_timer() * 1000 - wall_time:.4f}ms on workspace",
         )
+    # print("returning parsed_content", parsed_content)
     return parsed_content
 
 
