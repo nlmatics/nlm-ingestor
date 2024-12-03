@@ -69,7 +69,7 @@ jobs:
           set +e
           pkill -f "tika" > /dev/null 2>&1
           set -e
-          poetry run pytest tests/ingestors/test_pdf_ingestor.py
+          make test-pdf-ingestor
 
       - name: Run all tests with Tika
         run: |
