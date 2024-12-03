@@ -4492,6 +4492,7 @@ class Doc:
             # table ended, check if needs to be converted to list
             elif "is_table_end" in block or "one_row_table" in block:
                 end_idx = i
+                # take care of 1 column underwriter case (only for table)
                 if (
                     i + 1 < len(blocks)
                     and block["block_class"] == blocks[i + 1]["block_class"]
