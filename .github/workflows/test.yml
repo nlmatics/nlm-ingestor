@@ -62,7 +62,7 @@ jobs:
           set +e  # Don't exit on error
           pkill -f "tika" > /dev/null 2>&1  # Suppress output and errors
           set -e  # Resume exit on error
-          poetry run pytest tests/ --ignore=tests/ingestors/test_pdf_ingestor.py
+          make test
   
       - name: Run PDF ingestor tests with Tika
         run: |
