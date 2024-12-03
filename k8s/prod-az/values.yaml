@@ -76,13 +76,13 @@ readinessProbe:
 
 resources:
   limits:
-    cpu: 1950m
-    memory: 6Gi
-    ephemeral-storage: 50Gi
+    cpu: 500m
+    memory: 2Gi
+    ephemeral-storage: 30Gi
   requests:
-    cpu: 1950m
-    memory: 6Gi
-    ephemeral-storage: 50Gi
+    cpu: 500m
+    memory: 2Gi
+    ephemeral-storage: 30Gi
 
 autoscaling:
   enabled: true
