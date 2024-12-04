@@ -54,16 +54,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential python3-dev
 
-      - name: Export Poetry dependencies to requirements.txt
+      - name: Install Poetry and dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install poetry
-          poetry export -f requirements.txt --without-hashes --with dev -o requirements.txt
+          poetry config virtualenvs.create false
+          poetry install --with dev --no-interaction
 
-      - name: Install Python dependencies with pip
+      - name: Verify pdfplumber installation
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements.txt
+          python -c "import pdfplumber; print(f'pdfplumber version: {pdfplumber.__version__}')"
 
       - name: Download NLTK data
         run: |
