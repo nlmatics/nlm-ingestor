@@ -77,27 +77,37 @@ jobs:
       - name: Run PDF ingestor tests with Tika
         run: |
           # Clean up any existing Tika processes
-          pkill -f "tika" > /dev/null 2>&1 || true
+          pkill -f "tika-server" > /dev/null 2>&1 || true
           rm -f .tika.pid tika.log
-
+          
           # Start Tika server in background and save PID
-          java -jar jars/tika-server-2.9.2.jar > tika-startup.log 2>&1 &
+          java -jar jars/tika-server-standard-nlm-modified-2.9.2_v2.jar > tika-startup.log 2>&1 &
           echo $! > .tika.pid
           
-          # Give Tika time to start
-          sleep 10
+          # Give Tika time to start and verify it's running
+          for i in {1..30}; do
+            if curl -s http://localhost:9998/tika > /dev/null; then
+              echo "Tika server started successfully"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Tika server failed to start. Logs:"
+              cat tika-startup.log
+              exit 1
+            fi
+            sleep 1
+          done
           
           # Run tests with better error handling
-          if ! make test-pdf-ingestor 2>&1 | tee test-output.log; then
+          if ! PYTHONPATH=. poetry run python tests/run_ingestor_page_test.py 2>&1 | tee test-output.log; then
             echo "Tests failed. Displaying logs:"
             echo "=== Tika Startup Logs ==="
             cat tika-startup.log || true
-            echo "=== Tika Server Logs ==="
-            cat tika.log || true
             echo "=== Test Output Logs ==="
             cat test-output.log || true
+            pkill -f "tika-server" || true
             exit 1
           fi
           
           # Cleanup
-          pkill -f "tika" || true
+          pkill -f "tika-server" || true
