@@ -1,0 +1,39 @@
+name: Auto Generate Release
+run-name: Automatically generate a new release on GitHub
+
+permissions:
+  contents: read
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.*
+
+jobs:
+  create-release:
+    if: github.repository_owner == 'c0x12c'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create GitHub App Token
+        uses: actions/create-github-app-token@v1
+        id: github-app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.github-app-token.outputs.token }}
+          ref: ${{ github.head_ref }}
+
+      - uses: taiki-e/create-gh-release-action@v1
+        if: ${{ success() }}
+        with:
+          title: $version
+          branch: 'master|v[0-9]+'
+          token: ${{ steps.github-app-token.outputs.token }}
