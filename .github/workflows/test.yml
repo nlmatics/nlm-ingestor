@@ -80,9 +80,24 @@ jobs:
           pkill -f "tika" > /dev/null 2>&1 || true
           rm -f .tika.pid tika.log
 
-          # Run tests and capture all output
-          make test-pdf-ingestor 2>&1 | tee test-output.log || {
+          # Start Tika server in background and save PID
+          java -jar jars/tika-server-2.9.2.jar > tika-startup.log 2>&1 &
+          echo $! > .tika.pid
+          
+          # Give Tika time to start
+          sleep 10
+          
+          # Run tests with better error handling
+          if ! make test-pdf-ingestor 2>&1 | tee test-output.log; then
+            echo "Tests failed. Displaying logs:"
+            echo "=== Tika Startup Logs ==="
+            cat tika-startup.log || true
             echo "=== Tika Server Logs ==="
             cat tika.log || true
-            echo "=== End of Tika Logs ==="
-          }
+            echo "=== Test Output Logs ==="
+            cat test-output.log || true
+            exit 1
+          fi
+          
+          # Cleanup
+          pkill -f "tika" || true
