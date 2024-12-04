@@ -1,0 +1,163 @@
+
+13
+Beyond Examples: High-level Automated Reasoning Paradigm in In-Context
+Learning via MCTS
+Jinyang Wu * 1 Mingkuan Feng * 1 Shuai Zhang 1 Feihu Che 2 Zengqi Wen 2 Jianhua Tao 1 2
+Abstract
+In-context Learning (ICL) enables large lan-
+guage models (LLMs) to tackle downstream tasks
+through sophisticated prompting and high-quality
+demonstrations. However, this traditional ICL
+paradigm shows limitations when facing complex
+mathematical reasoning tasks, primarily due to
+its heavy dependence on example quality and the
+necessity for human intervention in challenging
+scenarios. To address these limitations, this pa-
+per presents HiAR-ICL, a High-level Automated
+Reasoning paradigm in ICL that shifts focus from
+specific examples to abstract thinking patterns,
+extending the conventional concept of context in
+ICL. HiAR-ICL introduces five atomic reasoning
+actions as fundamental components for construct-
+ing chain-structured patterns. Using Monte Carlo
+Tree Search, we explore reasoning paths and con-
+struct thought cards to guide subsequent inference.
+We then develop a cognitive complexity frame-
+work that dynamically matches problems with
+appropriate thought cards. Experimental results
+demonstrate HiAR-ICL’s effectiveness, achieving
+state-of-the-art accuracy (79.6%) on the MATH
+benchmark with Qwen2.5-7B-Instruct, surpassing
+GPT-4o (76.6%) and Claude 3.5 (71.1%).
+1. Introduction
+“Give a man a fish and you feed him for a day. Teach a man
+to fish and you feed him for a lifetime.”
+— An old proverb
+Large language models (LLMs) have demonstrated remark-
+able capabilities across diverse tasks and domains (Zhao
+et al., 2023; OpenAI, 2023; Yang et al., 2024a; Dubey et al.,
+* Equal contribution 1 Department of Automation, Tsinghua
+University, Beijing, China 2 Beijing National Research Center for
+Information Science and Technology, Beijing, China. Correspon-
+dence to: Shuai Zhang <zhang shuai@mail.tsinghua.edu.cn>,
+Jianhua Tao <jhtaoo@tsinghua.edu.cn>.
+Preprint
+2024). Among these capabilities, complex reasoning pro-
+ficiency, particularly in mathematical tasks, has emerged
+as a critical benchmark for evaluating these models’ fun-
+damental cognitive abilities (Hao et al., 2023; Xi et al.,
+2024). This aptitude highlights their logical reasoning skills
+and reflects their ability to solve structured problems effec-
+tively (Fu et al., 2023; Plaat et al., 2024). The mastery of
+multi-step reasoning often demands rigorous adherence to
+intricate rules, precise execution, and application of various
+problem-solving strategies, which poses unique challenges
+for existing LLMs (Ahn et al., 2024).
+Due to its simplicity and parameter-free nature (zero train-
+ing cost), in-context learning (ICL), also known as few-shot
+prompting, has garnered increasing attention and emerged
+as a promising approach for eliciting the reasoning potential
+of LLMs (Zhou et al., 2024c; Zhao et al., 2024). Origi-
+nally introduced by (Brown et al., 2020), the key idea of
+ICL is analogy-based learning (Dong et al., 2024). This
+approach expects LLMs to discern hidden patterns from
+carefully curated demonstration examples and subsequently
+generate appropriate reasoning steps for test problems. Ex-
+tensive research has focused on enhancing ICL performance
+through improved prompt engineering, encompassing both
+instruction optimization (Wang et al., 2023c) and demon-
+stration selection (Luo et al., 2024). A pivotal advancement
+in this domain is Chain-of-thought (CoT) reasoning (Wei
+et al., 2022; Kojima et al., 2022). By incorporating the
+prompt “Let’s think step by step” alongside step-by-step rea-
+soning examples, this approach enables models to emulate
+human-like reasoning processes, achieving notable success
+in complex problem-solving, especially in mathematical
+reasoning tasks (Sprague et al., 2024).
+Despite these advances, current ICL paradigms face sev-
+eral limitations. First, ICL-based reasoning performance is
+highly contingent upon the provided demonstrations. Em-
+pirical studies (Wang et al., 2023a; Cui et al., 2024; Wang
+et al., 2024c) have revealed that LLMs exhibit high sensitiv-
+ity to task-specific characteristics and multiple facets of ICL
+examples, including demonstration quantity, ordering, and
+label distributions. Consequently, suboptimal demonstra-
+tions may fail to elicit the best model performance and even
+hinder reasoning capabilities. Second, crafting high-quality
+1
+arXiv:2411.18478v1  [cs.CL]  27 Nov 2024
+Beyond Examples: High-level Automated Reasoning Paradigm in In-Context Learning via MCTS
+Xi, Z., Chen, W., Hong, B., Jin, S., Zheng, R., He, W.,
+Ding, Y., Liu, S., Guo, X., Wang, J., Guo, H., Shen, W.,
+Fan, X., Zhou, Y., Dou, S., Wang, X., Zhang, X., peng
+sun, Gui, T., Zhang, Q., and Huang, X. Training large
+language models for reasoning through reverse curricu-
+lum reinforcement learning. In Forty-first International
+Conference on Machine Learning, 2024.
+Yang, A., Yang, B., Hui, B., Zheng, B., Yu, B., Zhou, C.,
+Li, C., Li, C., Liu, D., Huang, F., et al. Qwen2 technical
+report. arXiv preprint arXiv:2407.10671, 2024a.
+Yang, L., Yu, Z., Zhang, T., Cao, S., Xu, M., Zhang, W.,
+Gonzalez, J. E., and Cui, B. Buffer of thoughts: Thought-
+augmented reasoning with large language models. Ad-
+vances in Neural Information Processing Systems, 2024b.
+Yao, S., Yu, D., Zhao, J., Shafran, I., Griffiths, T., Cao, Y.,
+and Narasimhan, K. Tree of thoughts: Deliberate problem
+solving with large language models. In Oh, A., Naumann,
+T., Globerson, A., Saenko, K., Hardt, M., and Levine, S.
+(eds.), Advances in Neural Information Processing Sys-
+tems, volume 36, pp. 11809–11822. Curran Associates,
+Inc., 2023.
+Ye, W., Liu, S., Kurutach, T., Abbeel, P., and Gao, Y. Mas-
+tering atari games with limited data. In Ranzato, M.,
+Beygelzimer, A., Dauphin, Y., Liang, P., and Vaughan,
+J. W. (eds.), Advances in Neural Information Process-
+ing Systems, volume 34, pp. 25476–25488. Curran Asso-
+ciates, Inc., 2021.
+Young, A., Chen, B., Li, C., Huang, C., Zhang, G., Zhang,
+G., Li, H., Zhu, J., Chen, J., Chang, J., et al. Yi:
+Open foundation models by 01. ai. arXiv preprint
+arXiv:2403.04652, 2024.
+Zhang, D., Li, J., Huang, X., Zhou, D., Li, Y., and Ouyang,
+W. Accessing gpt-4 level mathematical olympiad solu-
+tions via monte carlo tree self-refine with llama-3 8b.
+arXiv preprint arXiv:2406.07394, 2024a.
+Zhang, D., Wu, J., Lei, J., Che, T., Li, J., Xie, T., Huang,
+X., Zhang, S., Pavone, M., Li, Y., et al. Llama-berry:
+Pairwise optimization for o1-like olympiad-level math-
+ematical reasoning. arXiv preprint arXiv:2410.02884,
+2024b.
+Zhang, D., Zhoubian, S., Hu, Z., Yue, Y., Dong, Y., and
+Tang, J. Rest-mcts*: Llm self-training via process re-
+ward guided tree search. Advances in Neural Information
+Processing Systems, 2024c.
+Zhao, A., Ye, F., Fu, J., and Shen, X. Unveiling in-context
+learning: A coordinate system to understand its working
+mechanism. In Al-Onaizan, Y., Bansal, M., and Chen,
+Y.-N. (eds.), Proceedings of the 2024 Conference on Em-
+pirical Methods in Natural Language Processing, pp.
+12375–12400, Miami, Florida, USA, November 2024.
+Association for Computational Linguistics.
+Zhao, W. X., Zhou, K., Li, J., Tang, T., Wang, X., Hou, Y.,
+Min, Y., Zhang, B., Zhang, J., Dong, Z., et al. A survey of
+large language models. arXiv preprint arXiv:2303.18223,
+2023.
+Zhou, A., Yan, K., Shlapentokh-Rothman, M., Wang, H.,
+and Wang, Y.-X. Language agent tree search unifies
+reasoning, acting, and planning in language models. In
+Forty-first International Conference on Machine Learn-
+ing, 2024a.
+Zhou, A., Yan, K., Shlapentokh-Rothman, M., Wang, H.,
+and Wang, Y.-X. Language agent tree search unifies
+reasoning, acting, and planning in language models. In
+Forty-first International Conference on Machine Learn-
+ing, 2024b.
+Zhou, Y., Li, J., Xiang, Y., Yan, H., Gui, L., and He, Y.
+The mystery of in-context learning: A comprehensive
+survey on interpretation and analysis. In Al-Onaizan,
+Y., Bansal, M., and Chen, Y.-N. (eds.), Proceedings of
+the 2024 Conference on Empirical Methods in Natural
+Language Processing, pp. 14365–14378, Miami, Florida,
+USA, November 2024c. Association for Computational
+Linguistics.
+13

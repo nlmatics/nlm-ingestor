@@ -1,253 +1,256 @@
 import argparse
 import codecs
 import json
-import multiprocessing as mp
+import logging
 import os
-from itertools import groupby
-from urllib.parse import urljoin
+from pathlib import Path
 
-import requests
+import pdfplumber  # or PyPDF2
 from bs4 import BeautifulSoup
-from nlm_utils.storage import file_storage
-from nlm_ingestor.ingestor import table_parser, visual_ingestor
 
-BASE_URL = (
-    "http://host.docker.internal:5010"  # Adjust this if your port mapping is different
+from nlm_ingestor.ingestor import table_parser, visual_ingestor
+from nlm_ingestor.ingestor.pdf_ingestor import PDFIngestor
+
+TEST_COVERAGE_RATIO = 0.93  # Minimum coverage to pass the test
+# Set up logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
-html_dict = {}
+
+def save_text_content(doc_id, text_content, text_type):
+    """Save text content to file"""
+    # Create text directory if it doesn't exist
+    text_dir = Path("files/text")
+    text_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save text file
+    output_path = text_dir / f"{doc_id}_{text_type}.txt"
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(text_content)
 
 
-def process_document_with_container(doc_id, pdf_path):
-    url = urljoin(BASE_URL, "/api/parseDocument")
-    files = {"file": open(pdf_path, "rb")}
-    params = {"renderFormat": "all", "useNewIndentParser": "yes", "applyOcr": "no"}
-    try:
-        response = requests.post(url, files=files, params=params)
-        response.raise_for_status()
-        print("Response:")
-        print(json.dumps(response.json(), indent=2))
-        return response.json()["return_dict"]["html"]
-    except requests.RequestException as e:
-        print(f"Error processing document {doc_id}: {str(e)}")
-        return None
-    finally:
-        files["file"].close()
-
-
-def pre_process_text(text):
-    text = str(text).replace('"', "'").replace("\\", "")
-    return text
-
-
-def retrive_pdf(doc_id):
-    file_location = f"/app/files/pdf/{doc_id}.pdf"  # /app for docker mount
-    if os.path.isfile(file_location):
-        print(f"file {doc_id}.pdf found")
-        return file_location
-
-    if not os.path.exists("/app/files/pdf"):  # /app for docker mount
-        os.makedirs("/app/files/pdf")  # /app for docker mount
-    # open(file_location, 'a').close()
-    doc_loc = db["document"].find_one({"id": doc_id})["doc_location"]
-    file_storage.download_document(doc_loc, file_location)
-    return file_location
-
-def ingestor_debug():
-    visual_ingestor.HTML_DEBUG = False
-    visual_ingestor.LINE_DEBUG = False
-    visual_ingestor.MIXED_FONT_DEBUG = False
-    table_parser.TABLE_DEBUG = False
-    table_parser.TABLE_COL_DEBUG = False
-    visual_ingestor.HF_DEBUG = False
-    visual_ingestor.REORDER_DEBUG = False
-    visual_ingestor.MERGE_DEBUG = False
-
-def get_html(doc_id):
-    pdf_file = f"/app/files/pdf/{doc_id}.pdf"
-    html_file = f"/app/files/html/{doc_id}.html"
-    ingestor_debug()
-
-    if os.path.isfile(html_file):
-        print(f"HTML file {doc_id}.html found")
-        with codecs.open(html_file, "r", "utf-8") as f:
+def load_text_content(doc_id, text_type):
+    """Load text content from file if it exists"""
+    text_path = Path(f"files/text/{doc_id}_{text_type}.txt")
+    if text_path.exists():
+        with open(text_path, "r", encoding="utf-8") as f:
             return f.read()
+    return None
+
+
+def get_pdf_text_baseline(pdf_path):
+    """Extract text from PDF using pdfplumber as baseline"""
+    text_content = []
+    page_lookup = {}  # Dictionary to store word -> page_number mapping
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, 1):  # Start page numbers at 1
+            text = page.extract_text()
+
+            # Add space between any letter followed by a capital letter
+            normalized_text = ""
+            for i in range(len(text) - 1):
+                normalized_text += text[i]
+                if (
+                    text[i].isalpha()
+                    and text[i + 1].isupper()
+                    and not text[i].isupper()
+                ):  # Don't split acronyms
+                    normalized_text += " "
+            normalized_text += text[-1] if text else ""
+
+            # Store page number for each word
+            for word in normalized_text.split():
+                page_lookup[word.lower()] = page_num
+
+            text_content.append(normalized_text.strip())
+
+    return "\n".join(text_content), page_lookup
+
+
+def get_ingestor_text(doc_id):
+    """Get text from PDFIngestor"""
+    pdf_file = f"files/pdf/{doc_id}.pdf"
 
     if not os.path.isfile(pdf_file):
         raise FileNotFoundError(f"PDF file {pdf_file} not found")
 
-    print(f"Processing PDF: {pdf_file}")
-    html_content = process_document_with_container(doc_id, pdf_file)
-    
-    if html_content is None:
-        raise Exception(f"Failed to process document {doc_id}")
+    logger.info(f"Processing PDF with ingestor: {pdf_file}")
 
-    # Ensure the directory exists
-    os.makedirs(os.path.dirname(html_file), exist_ok=True)
+    parse_options = {
+        "apply_ocr": False,
+        "use_new_indent_parser": True,
+        "render_format": "all",
+    }
 
-    # Save the HTML content
-    with open(html_file, "w", encoding="utf-8") as f:
-        f.write(html_content)
-    print(f"Saved HTML content to {html_file}")
+    ingestor = PDFIngestor(pdf_file, parse_options)
 
-    return html_content
+    # Extract text from blocks
+    text_content = []
+    for block in ingestor.blocks:
+        if block.get("block_text"):
+            text_content.append(block["block_text"].strip())
 
-def compare_results(test, html_text):
-    print("Comparing results")
-
-    soup = BeautifulSoup(html_text, "html.parser")
-    page_data = []
-    min_indent = 100000
-
-    print("Extracted text content:")
-    for tag in soup.find_all(text=True):
-        if tag.strip():
-            print(f"- {tag.strip()}")
-    print(test, "test")
-    for tag in soup.findAll("", {"page_idx": str(test["page_idx"])}):
-        name = tag.name
-        print(tag, name, "\n\n")
-        if name in ["td", "tr", "th"]:
-            continue
-        style = tag.get("style")
-        if style and "margin-left: " in style and "px" in style:
-            indent = int(style.split("margin-left: ")[1].split("px")[0]) + 20
-        elif not style and (tag.get("block_idx") or tag.get("block_idx") == "0"):
-            indent = 20
-        else:
-            indent = None
-
-        if indent:
-            min_indent = min(indent, min_indent)
-            page_data.append([name, indent])
-
-    for p in page_data:
-        p[1] = (p[1] - min_indent) // 20
-
-    print("Resulting page_data structure:")
-    print(json.dumps(page_data, indent=2))
-
-    if page_data == test["page_data"]:
-        return "correct", page_data
-    else:
-        return "incorrect", page_data
+    return "\n".join(text_content)
 
 
-def print_results(
-    total_tests,
-    total_documents,
-    correct_tables,
-    missed_tables,
-    incorrect_tables,
-):
-    def print_table(table):
-        s = ""
-        for i, row in enumerate(table):
-            s += f"{i} {row} \n"
-        return s
+def compare_text_content(baseline_text, ingestor_text, page_lookup=None):
+    """Compare text content between baseline and ingestor"""
 
-    def print_document_attrs(doc_id):
-        doc = db["document"].find_one({"id": doc_id})
-        workspace = db["workspace"].find_one({"id": doc["workspace_id"]})
-        return f"Workspace: {workspace['name']}; Document: {doc['name']}, {doc['id']}"
+    # Normalize text for comparison
+    def normalize_text(text):
+        return " ".join(text.lower().split())
 
-    line_break = "======================================================== \n"
-    row_break = "***** \n"
-    s = line_break
+    baseline_normalized = normalize_text(baseline_text)
+    ingestor_normalized = normalize_text(ingestor_text)
 
-    if incorrect_tables:
-        s += line_break + "Incorrect Matches: \n"
-        for match in incorrect_tables:
-            s += row_break
-            correct = match[0]
-            s += f"{print_document_attrs(correct['doc_id'])}; Page: {correct['page_idx']}; location: {correct['page_data']}; \n"
-            s += "Stored: \n" + print_table(correct["page_data"])
-            s += "Parsed: \n" + print_table(match[1])
+    # Get words from each text
+    baseline_words = set(baseline_normalized.split())
+    ingestor_words = set(ingestor_normalized.split())
 
-    if missed_tables:
-        s += line_break + "Missed Matches: \n"
-        for match in missed_tables:
-            s += row_break
-            match_pos = f"{match['top']}, {match['left']} \n"
-            s += f"{print_document_attrs(match['doc_id'])}; Page: {match['page_idx']}; location: {match_pos}; Table Name: {match['name']}; Tag: {match['tag']} \n"
-            s += print_table(match["table"])
+    # Calculate coverage
+    words_found = baseline_words.intersection(ingestor_words)
+    coverage = len(words_found) / len(baseline_words) if baseline_words else 0
 
-    s += line_break
-    s += f"Total documents: {total_documents}, Total tests: {total_tests}, correct: {len(correct_tables)}, incorrect: {len(incorrect_tables)}, missed: {len(missed_tables)} \n"
-    s += line_break
-    return s
+    # Create missing words with page numbers
+    missing_words_with_pages = []
+    for word in baseline_words - ingestor_words:
+        page_num = page_lookup.get(word, "unknown") if page_lookup else "unknown"
+        missing_words_with_pages.append((word, page_num))
+
+    return {
+        "coverage": coverage,
+        "total_baseline_words": len(baseline_words),
+        "total_ingestor_words": len(ingestor_words),
+        "words_found": len(words_found),
+        "missing_words": missing_words_with_pages,
+    }
 
 
-def run_table_test(test):
-    try:
-        doc_id = test["doc_id"]
-        print(f"Processing document: {doc_id}")
-        html_text = get_html(doc_id)
-        result, data = compare_results(test, html_text)
-        return result, data, test
-    except Exception as e:
-        print(f"Error processing document {doc_id}: {str(e)}")
-        return "error", str(e), test
-
-
-def run_test(doc_id="", num_procs=1):
+def run_test(doc_id=""):
+    """Run the test on a single document or all documents in the pdf directory"""
     if doc_id:
-        tests = [{"doc_id": doc_id, "page_idx": 0, "page_data": []}]
+        pdfs = [doc_id]
     else:
-        tests = []
-        pdf_dir = "/app/files/pdf"  # /app for docker mount
-        for filename in os.listdir(pdf_dir):
-            if filename.endswith(".pdf"):
-                doc_id = filename[:-4]
-                tests.append({"doc_id": doc_id, "page_idx": 0, "page_data": []})
+        pdf_dir = "files/pdf"
+        pdfs = [Path(f).stem for f in os.listdir(pdf_dir) if f.endswith(".pdf")]
 
-    tests.sort(key=lambda x: x["doc_id"])
+    # Create debug directory if it doesn't exist
+    debug_dir = Path("files/debug")
+    debug_dir.mkdir(parents=True, exist_ok=True)
 
-    if num_procs > 1:
-        with mp.Pool(num_procs) as pool:
-            results = pool.map(run_table_test, tests)
-    else:
-        results = []
-        for test in tests:
-            try:
-                results.append(run_table_test(test))
-            except Exception as e:
-                print(f"Error processing test: {str(e)}")
-                results.append(("error", str(e), test))
+    results = []
+    for pdf_id in pdfs:
+        try:
+            logger.info(f"Processing document: {pdf_id}")
+            pdf_path = f"files/pdf/{pdf_id}.pdf"
 
-    correct_tables = []
-    missed_tables = []
-    incorrect_tables = []
-    total_documents = len(tests)
+            # Try to load cached baseline text, otherwise extract and save
+            baseline_text = load_text_content(pdf_id, "baseline")
+            if baseline_text is None:
+                logger.info("Getting baseline text...")
+                baseline_text, page_lookup = get_pdf_text_baseline(pdf_path)
+                save_text_content(pdf_id, baseline_text, "baseline")
+            else:
+                logger.info("Using cached baseline text")
+                # Get fresh page_lookup even with cached text
+                _, page_lookup = get_pdf_text_baseline(pdf_path)
+            logger.debug(f"Baseline text length: {len(baseline_text)}")
 
-    for result, data, test in results:
-        if result == "correct":
-            correct_tables.append(test)
-        elif result == "incorrect":
-            incorrect_tables.append([test, data])
-        elif result == "missed":
-            missed_tables.append(test)
+            # Always get fresh ingestor text
+            logger.info("Getting ingestor text...")
+            ingestor_text = get_ingestor_text(pdf_id)
+            logger.debug(f"Ingestor text length: {len(ingestor_text)}")
 
-    response = print_results(
-        len(tests),
-        total_documents,
-        correct_tables,
-        missed_tables,
-        incorrect_tables,
-    )
-    print(response)
-    return
+            # Save debug output
+            debug_file = debug_dir / f"{pdf_id}_comparison.txt"
+            with open(debug_file, "w", encoding="utf-8") as f:
+                f.write("=== BASELINE TEXT ===\n")
+                f.write(baseline_text)
+                f.write("\n\n=== INGESTOR TEXT ===\n")
+                f.write(ingestor_text)
+                f.write("\n\n=== STATISTICS ===\n")
+                f.write(f"Baseline text length: {len(baseline_text)}\n")
+                f.write(f"Ingestor text length: {len(ingestor_text)}\n")
+
+            # Compare results
+            comparison = compare_text_content(baseline_text, ingestor_text, page_lookup)
+            results.append((pdf_id, comparison))
+
+            # Log detailed results
+            logger.info(f"Results for {pdf_id}:")
+            logger.info(f"Text coverage: {comparison['coverage']*100:.2f}%")
+            logger.info(f"Baseline words: {comparison['total_baseline_words']}")
+            logger.info(f"Ingestor words: {comparison['total_ingestor_words']}")
+            logger.info(f"Words found: {comparison['words_found']}")
+
+            # Add comparison stats to debug file
+            with open(debug_file, "a", encoding="utf-8") as f:
+                f.write(f"\nCoverage: {comparison['coverage']*100:.2f}%\n")
+                f.write(f"Baseline words: {comparison['total_baseline_words']}\n")
+                f.write(f"Ingestor words: {comparison['total_ingestor_words']}\n")
+                f.write(f"Words found: {comparison['words_found']}\n")
+
+            # Log missing words if any
+            if comparison["missing_words"]:
+                # Sort missing words by length and get 10 longest
+                longest_missing = sorted(
+                    comparison["missing_words"],
+                    key=lambda x: len(x[0]),  # Sort by word length, not page number
+                    reverse=True,
+                )[:10]
+
+                logger.info("Sample of longest missing words/phrases:")
+                # Add missing words to debug file
+                with open(debug_file, "a", encoding="utf-8") as f:
+                    f.write("\n=== LONGEST MISSING WORDS ===\n")
+                    for i, (word, page_num) in enumerate(longest_missing, 1):
+                        msg = f"{i}. (Page {page_num}, {len(word)} chars) {word}"
+                        logger.info(msg)
+                        f.write(f"{msg}\n")
+
+            # Assert that the coverage is over 93%
+            assert (
+                comparison["coverage"] > TEST_COVERAGE_RATIO
+            ), f"Text coverage for {pdf_id} is below {TEST_COVERAGE_RATIO*100}%: {comparison['coverage']*100:.2f}%"
+
+        except Exception as e:
+            logger.error(f"Error processing {pdf_id}: {str(e)}", exc_info=True)
+            results.append((pdf_id, {"error": str(e)}))
+
+            # Log error to debug file
+            with open(debug_file, "a", encoding="utf-8") as f:
+                f.write("\n=== ERROR ===\n")
+                f.write(str(e))
+
+    return results
+
+    return results
 
 
 if __name__ == "__main__":
-    mp.freeze_support()  # This line is correct and should stay here
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--doc_id", required=False)
-    arg_parser.add_argument("--num_procs", required=False, type=int, default=1)
-    args = arg_parser.parse_args()
+    parser = argparse.ArgumentParser(description="Test PDF text extraction")
+    parser.add_argument(
+        "--doc_id", help="Specific document ID to process", nargs="+", default=""
+    )
+    args = parser.parse_args()
 
-    doc_id = args.doc_id if args.doc_id else ""
-    num_procs = args.num_procs
+    doc_id = "_".join(args.doc_id) if args.doc_id else ""
 
-    print(f"Running script with -> docId: {doc_id}, num_procs: {num_procs}")
-    run_test(doc_id=doc_id, num_procs=num_procs)
+    print(f"Running test for document: {doc_id or 'all documents'}")
+    results = run_test(doc_id=doc_id)
+
+    # Print summary
+    print("\nTest Summary:")
+    print("=" * 80)
+    for doc_id, result in results:
+        print(f"\nDocument: {doc_id}")
+        if "error" in result:
+            print(f"Error: {result['error']}")
+        else:
+            print(f"Coverage: {result['coverage']*100:.2f}%")
+            print(
+                f"Words found: {result['words_found']} of {result['total_baseline_words']}"
+            )

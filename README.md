@@ -107,3 +107,15 @@ Some ideas for future work:
 1) Make the changes independent of tika by writing own wrapper over pdfbox
 2) Upgrade to latest version of tika 
 3) Cleanup the format of returned html to make it more css friendly
+
+
+### Pacific Readme
+
+1. run tests
+`make test`
+`make test-pdf-ingestor`
+
+2. build image. This pushes to the Pacific production ECR repo.
+`make build_and_push`
+
+3. After image build, you need to go to the pacific-server repo and deploy the modal app. Make sure you have the Pacific prod aws vars as env vars in your local environment.

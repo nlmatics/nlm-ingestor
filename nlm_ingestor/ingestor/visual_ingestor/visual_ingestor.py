@@ -4407,13 +4407,21 @@ class Doc:
         def blocks_to_list(start_idx, end_idx):
             header_text = ""
             header_idx = end_idx
-            while not header_text:
+            while not header_text and header_idx >= 0:
                 if blocks[header_idx]["block_type"] == "header":
                     header_text = blocks[header_idx]["block_text"]
                 header_idx -= 1
-            # convert block to list
+            # Handle case where no header is found
+            if not header_text:
+                # Decide how to handle this scenario
+                # For example, set a default header or skip processing
+                header_text = ""
+                # Or log an error if appropriate
+                logger.error(
+                    f"No header found for underwriter blocks: {blocks[start_idx:end_idx+1]}"
+                )
+            # Convert blocks to list items
             j = start_idx
-            # get the longest span between table and header detection
             while j <= end_idx:
                 curr_block = blocks[j]
                 for line_idx, line in enumerate(curr_block["visual_lines"]):
@@ -4431,13 +4439,12 @@ class Doc:
                         "page_idx": line["page_idx"],
                         "visual_lines": [line],
                     }
-                    # replace current block then insert new lists blocks
+                    # Replace current block or insert new list blocks
                     if curr_block in blocks:
                         blocks[j] = underwriter_block
                     else:
                         blocks.insert(j + 1, underwriter_block)
                         j += 1
-                        # i += 1
                         end_idx += 1
                 j += 1
 
@@ -4477,7 +4484,6 @@ class Doc:
                     while center_italic_idx < len(blocks) and check_special_line(
                         blocks[center_italic_idx]
                     ):
-                        # print(blocks[center_italic_idx]["block_text"])
                         center_italic_idx += 1
 
             if center_italic_idx > i and not is_special:
