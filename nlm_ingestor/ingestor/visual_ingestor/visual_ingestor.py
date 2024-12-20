@@ -5314,6 +5314,8 @@ class Doc:
                         result_list[0][0:split_idx],
                         result_list[0][split_idx:],
                     ]
+            if len(block_types) < len(result_list):
+                block_types.extend(["para"] * (len(result_list) - len(block_types)))
             return result_list, buf_texts, block_types
         else:
             split_idx = -1
@@ -5453,8 +5455,12 @@ class Doc:
                                 buf_texts[1:],
                             ]
                             result_list = [[line_info], [result_list[0][0:]]]
+                if len(block_types) < len(result_list):
+                    block_types.extend(["para"] * (len(result_list) - len(block_types)))
                 return result_list, buf_texts, block_types
             else:
+                if len(block_types) < len(result_list):
+                    block_types.extend(["para"] * (len(result_list) - len(block_types)))
                 return result_list, buf_texts, block_types
 
     def divide_para_to_headers(self):
