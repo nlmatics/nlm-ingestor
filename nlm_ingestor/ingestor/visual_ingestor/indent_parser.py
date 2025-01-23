@@ -42,7 +42,7 @@ def get_list_item_sum(number, list_type):
         for c in number.split("."):
             if len(c) == 1:
                 new_number += "0"
-            if c.isdigit():
+            if c.isdecimal():
                 new_number += c
         return int(new_number)
     elif list_type == "letter":
