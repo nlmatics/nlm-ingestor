@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 try:
     stop_words = set(stopwords.words("english"))
 except Exception as e:
-    logger.error(e)
+    print(e)
     import nltk
 
     stopwords = nltk.download("stopwords")
@@ -145,7 +145,7 @@ class Word:
             else:
                 self.num_digits = 0
         except Exception as e:
-            logger.error(e)
+            print(e)
             self.num_digits = 0
 
     def check_date(self):

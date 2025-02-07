@@ -106,21 +106,21 @@ def clean_lines(lines, xml=False):
             # find out if previous line was a discontinous line
             prev_line = line_buffer[-1]
 
-            logger.debug("========")
-            logger.debug(f"{prev_line.incomplete_line} >> {prev_line.text} \n")
-            logger.debug(f"{curr_line.continuing_line} >> {curr_line.text} \n")
+            print("========")
+            print(f"{prev_line.incomplete_line} >> {prev_line.text} \n")
+            print(f"{curr_line.continuing_line} >> {curr_line.text} \n")
             # keep connecting lines as long as they seem incomplete
             is_incomplete = prev_line.incomplete_line or (
                 len(line_buffer) > 1 and not prev_line.ends_with_period
             )
-            logger.debug(
+            print(
                 f"incomplete: {is_incomplete}, is_list_or_row: {curr_line.is_list_or_row}, continuing_line: {curr_line.continuing_line}",
             )
             if (
                 is_incomplete
                 and not (curr_line.is_list_or_row or curr_line.line_type == "list_item")
             ) or curr_line.continuing_line:
-                logger.debug("connecting..")
+                print("connecting..")
                 running_line = formatter.connect(running_line, curr_line.text)
                 line_buffer.append(curr_line)
                 # if we are connecting lines, then this has to be a para unless it is a list_item, basically no headers
@@ -128,7 +128,7 @@ def clean_lines(lines, xml=False):
                     line_type = "para"
             else:  # commit the line and start a new line
                 # remove different types of bulletted list (for better formatting) but do not touch numbered line
-                logger.debug("starting new line..")
+                print("starting new line..")
                 # if line_type == "list_item":
                 #     running_line = running_line[1:].lstrip()
 
@@ -152,7 +152,7 @@ def clean_lines(lines, xml=False):
                 running_line = curr_line.text
                 line_buffer = [curr_line]
                 line_type = curr_line.line_type
-            logger.debug("========")
+            print("========")
         else:
             running_line = curr_line.text
             line_type = curr_line.line_type
@@ -410,7 +410,7 @@ def visual_header_check(prev_line, curr_line, same_font):
             offset = curr_line.visual_line.min_x - prev_line.visual_line.min_x  # offset
 
         # print("(prev_line_width - offset) / curr_line_width")
-        # print((prev_line_width - offset) / curr_line_width)
+        # print(prev_line_width - offset) / curr_line_width)
         overlap_percentage = (prev_line_width - offset) / curr_line_width
         different_font_style = (
             prev_line.visual_line.fw != curr_line.visual_line.fw

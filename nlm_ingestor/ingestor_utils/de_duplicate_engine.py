@@ -11,7 +11,7 @@ class DeDuplicateEngine:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(logging.INFO)
 
-        self.logger.info(
+        self.print(
             f"Initing Duplicated Detection Engine with settings {settings}",
         )
 
@@ -22,7 +22,7 @@ class DeDuplicateEngine:
             url=os.getenv("MODEL_SERVER_URL", "https://services.nlmatics.com"),
         )
         if not settings:
-            self.logger.info(
+            self.print(
                 "No settings provided, Duplicated Detection Engine not inited ",
             )
             return
@@ -54,7 +54,7 @@ class DeDuplicateEngine:
             scores = np.dot(self.embeddings[level], embedding)
             most_similar_idx = np.argmax(scores)
             if scores[most_similar_idx] > self.threshold:
-                self.logger.info(
+                self.print(
                     f"found duplicate with score: {scores[most_similar_idx]}, settings: {self.settings[level][most_similar_idx]}",
                 )
                 report["is_duplicated"] = True

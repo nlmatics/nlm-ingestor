@@ -1,5 +1,5 @@
 # parse style
-
+from typing import Any
 import copy
 import operator
 import pprint
@@ -4404,27 +4404,30 @@ class Doc:
                     return False
             return True
 
-        def blocks_to_list(start_idx, end_idx):
-            header_text = ""
-            header_idx = end_idx
-            while not header_text and header_idx >= 0:
-                if blocks[header_idx]["block_type"] == "header":
+        def blocks_to_list(start_idx: int, end_idx: int, blocks: Any) -> None:
+            print("starting blocks_to_list")
+            header_text: str = ""
+            header_idx: int = end_idx
+            while not header_text and header_idx >= start_idx:
+                if blocks[header_idx]["block_type"] in (
+                    "header",
+                    "header_modified",
+                    "header_modified_to_para",
+                ):
                     header_text = blocks[header_idx]["block_text"]
                 header_idx -= 1
-            # Handle case where no header is found
+
             if not header_text:
-                # Decide how to handle this scenario
-                # For example, set a default header or skip processing
                 header_text = ""
-                # Or log an error if appropriate
-                logger.error(
+                print(
                     f"No header found for underwriter blocks: {blocks[start_idx:end_idx+1]}"
                 )
-            # Convert blocks to list items
-            j = start_idx
+
+            j: int = start_idx
             while j <= end_idx:
                 curr_block = blocks[j]
-                for line_idx, line in enumerate(curr_block["visual_lines"]):
+                new_visual_lines: List[Any] = []
+                for line in curr_block["visual_lines"]:
                     underwriter_block = {
                         "block_class": line["class"],
                         "block_idx": j,
@@ -4439,13 +4442,8 @@ class Doc:
                         "page_idx": line["page_idx"],
                         "visual_lines": [line],
                     }
-                    # Replace current block or insert new list blocks
-                    if curr_block in blocks:
-                        blocks[j] = underwriter_block
-                    else:
-                        blocks.insert(j + 1, underwriter_block)
-                        j += 1
-                        end_idx += 1
+                    new_visual_lines.append(underwriter_block)
+                blocks[j] = new_visual_lines[0]
                 j += 1
 
         is_table, is_special = False, False
@@ -4487,7 +4485,7 @@ class Doc:
                         center_italic_idx += 1
 
             if center_italic_idx > i and not is_special:
-                blocks_to_list(i + 1, center_italic_idx - 1)
+                blocks_to_list(i + 1, center_italic_idx - 1, blocks)
                 center_italic_idx = 0
             # table ended, check if needs to be converted to list
             elif "is_table_end" in block or "one_row_table" in block:
@@ -4499,7 +4497,9 @@ class Doc:
                 ):
                     end_idx += 1
                 if is_special:
-                    blocks_to_list(table_start_idx, max(center_italic_idx, end_idx))
+                    blocks_to_list(
+                        table_start_idx, max(center_italic_idx, end_idx), blocks
+                    )
                 # reset variable
                 is_table = False
 

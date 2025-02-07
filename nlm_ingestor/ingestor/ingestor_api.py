@@ -35,34 +35,34 @@ def ingest_document(
     mime_type,
     parse_options: dict = None,
 ):
-    logger.info(f"Parsing {mime_type} at {doc_location} with name {doc_name}")
+    print(f"Parsing {mime_type} at {doc_location} with name {doc_name}")
     ingestor = None
     if mime_type == "application/pdf":
-        logger.info("using pdf parser")
+        print("using pdf parser")
         ingestor = pdf_ingestor.PDFIngestor(doc_location, parse_options)
         return_dict = ingestor.return_dict
     elif mime_type in {"text/markdown", "text/x-markdown"}:
-        logger.info("using markdown parser")
+        print("using markdown parser")
         ingestor = markdown_parser.MarkdownDocument(doc_location)
         return_dict = {"result": ingestor.json_dict}
     elif mime_type == "text/html":
-        logger.info("using html parser")
+        print("using html parser")
         ingestor = html_ingestor.HTMLIngestor(doc_location)
         return_dict = {
             "result": ingestor.json_dict,
         }
     elif mime_type == "text/plain":
-        logger.info("using text parser")
+        print("using text parser")
         ingestor = text_ingestor.TextIngestor(doc_location, parse_options)
         return_dict = ingestor.return_dict
     elif mime_type == "text/xml":
-        logger.info("using xml parser")
+        print("using xml parser")
         ingestor = xml_ingestor.XMLIngestor(doc_location)
         return_dict = {
             "result": ingestor.json_dict,
         }
     else:  # use tika parser as a catch all
-        logger.info(f"defaulting to tika parser for mime_type {mime_type}")
+        print(f"defaulting to tika parser for mime_type {mime_type}")
         parsed_content = pdf_file_parser.parse_to_html(doc_location)
         with open(doc_location, "w") as file:
             file.write(parsed_content["content"])
@@ -73,5 +73,5 @@ def ingest_document(
 
     if doc_location and os.path.exists(doc_location):
         os.unlink(doc_location)
-        logger.info(f"File {doc_location} deleted")
+        print(f"File {doc_location} deleted")
     return return_dict, ingestor

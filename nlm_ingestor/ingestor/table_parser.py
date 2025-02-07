@@ -22,17 +22,17 @@ class TableParser:
             if info.get("is_table_start", False) and not info.get(
                 "has_merged_cells", False
             ):
-                self.logger.debug(f"Found table start from match_idx:{idx}")
+                self.print(f"Found table start from match_idx:{idx}")
                 table_start_idx = idx
                 table_infos.append(info)
             elif table_start_idx is not None and info.get("is_table_end", False):
                 table_infos.append(info)
-                self.logger.debug(f"Table ends with match_idx:{idx}")
+                self.print(f"Table ends with match_idx:{idx}")
                 # resolve table
                 try:
                     df = self.resolve_table_from_infos(table_infos)
                     if isinstance(df, pd.DataFrame):
-                        self.logger.info(
+                        self.print(
                             f"Found table at match_idx:{idx} of shape {df.shape}",
                         )
                         self.tables[table_start_idx] = df
@@ -45,11 +45,11 @@ class TableParser:
                                 self.two_column_table_idx.add(idx - info_idx)
                         self.resolved_tables.add(table_infos[0]["table_idx"])
                     else:
-                        self.logger.error(
+                        self.print(
                             f"Found table at match_idx:{idx} but failed to parse\n{table_infos[:2]}",
                         )
                 except Exception:
-                    self.logger.error(
+                    self.print(
                         f"Failed to parse table:\n{table_infos[:2]}",
                         exc_info=True,
                     )
@@ -84,7 +84,7 @@ class TableParser:
             cur_index += 1
 
         if cur_index == len(table_infos):
-            self.logger.error(
+            self.print(
                 f"No actual table rows other than headers.. skipping current table"
             )
             return
@@ -173,14 +173,14 @@ class TableParser:
             # drop all None columns
             df = df.dropna(how="all", axis="columns").fillna("")
         except Exception as e:
-            self.logger.error(
+            self.print(
                 f"Failed to create DataFrame. Please check ingestor. {e} \n"
                 f"col names:\n{column_names} \ndata:\n{data[0:3]}"
             )
             return
 
         index_column = self.resolve_index(df)
-        self.logger.debug(f"Column with idx:{index_column} is index")
+        self.print(f"Column with idx:{index_column} is index")
 
         if len(set(multi_index)) > 1:
             df["_MULTI_INDEX_"] = multi_index
@@ -200,7 +200,7 @@ class TableParser:
         #         df.replace(r"^\s*$", np.nan, regex=True).count().sum()
         #         < df.shape[0] * df.shape[1] * 0.5
         #     ):
-        #         self.logger.info("50% entries is empty, skipping current table")
+        #         self.print("50% entries is empty, skipping current table")
         #         return
 
         return df
@@ -248,17 +248,17 @@ class TableParser:
 
         # # column is unique, or duplicated when combine with existing, it must not be index
         # if shapes[0]["is_unique"] or shapes[0]["is_duplicated"]:
-        #     self.logger.debug(f"First column has duplicates, it can not be an index")
+        #     self.print(f"First column has duplicates, it can not be an index")
         #     first_column_impossible = True
 
         # first column is number, it can not be an index only if the column is not an year value
         if shapes[0]["number_column"] and not shapes[0].get("is_year_column", False):
-            self.logger.debug("First column is number, it can not be an index")
+            self.print("First column is number, it can not be an index")
             first_column_impossible = True
 
         # # column is unique, or duplicated when combine with existing, it must not be index
         # if shapes[-1]["is_unique"] or shapes[-1]["is_duplicated"]:
-        #     self.logger.debug(f"Last column has duplicates, it can not be an index")
+        #     self.print(f"Last column has duplicates, it can not be an index")
         #     last_column_impossible = True
 
         # fist column is possible
@@ -267,7 +267,7 @@ class TableParser:
             if shapes[0]["no_column_name"] and any(
                 [x["no_column_name"] for x in shapes[1:]],
             ):
-                self.logger.debug(
+                self.print(
                     "First column has no name, and other contain column name",
                 )
                 return 0
@@ -277,7 +277,7 @@ class TableParser:
                 and max([x["number_column"] for x in shapes[1:]]) > 0
             ):
 
-                self.logger.debug(
+                self.print(
                     "First column has no number, and other contain numbers",
                 )
                 return 0
@@ -289,7 +289,7 @@ class TableParser:
                 [x["no_column_name"] for x in shapes[:-1]],
             ):
 
-                self.logger.debug(
+                self.print(
                     "Last column has no name, and other contain column name",
                 )
                 return -1
@@ -298,14 +298,14 @@ class TableParser:
                 shapes[-1]["number_column"] == 0
                 and max([x["number_column"] for x in shapes[:-1]]) > 0
             ):
-                self.logger.debug(
+                self.print(
                     "Last column has no number, and other contain numbers",
                 )
                 return -1
 
         # default first column as index
         if not first_column_impossible:
-            self.logger.debug("default first column as index")
+            self.print("default first column as index")
             return 0
         else:
             return None
