@@ -77,7 +77,7 @@ def get_ingestor_text(doc_id):
     if not os.path.isfile(pdf_file):
         raise FileNotFoundError(f"PDF file {pdf_file} not found")
 
-    logger.info(f"Processing PDF with ingestor: {pdf_file}")
+    print(f"Processing PDF with ingestor: {pdf_file}")
 
     parse_options = {
         "apply_ocr": False,
@@ -144,25 +144,25 @@ def run_test(doc_id=""):
     results = []
     for pdf_id in pdfs:
         try:
-            logger.info(f"Processing document: {pdf_id}")
+            print(f"Processing document: {pdf_id}")
             pdf_path = f"files/pdf/{pdf_id}.pdf"
 
             # Try to load cached baseline text, otherwise extract and save
             baseline_text = load_text_content(pdf_id, "baseline")
             if baseline_text is None:
-                logger.info("Getting baseline text...")
+                print("Getting baseline text...")
                 baseline_text, page_lookup = get_pdf_text_baseline(pdf_path)
                 save_text_content(pdf_id, baseline_text, "baseline")
             else:
-                logger.info("Using cached baseline text")
+                print("Using cached baseline text")
                 # Get fresh page_lookup even with cached text
                 _, page_lookup = get_pdf_text_baseline(pdf_path)
-            logger.debug(f"Baseline text length: {len(baseline_text)}")
+            print(f"Baseline text length: {len(baseline_text)}")
 
             # Always get fresh ingestor text
-            logger.info("Getting ingestor text...")
+            print("Getting ingestor text...")
             ingestor_text = get_ingestor_text(pdf_id)
-            logger.debug(f"Ingestor text length: {len(ingestor_text)}")
+            print(f"Ingestor text length: {len(ingestor_text)}")
 
             # Save debug output
             debug_file = debug_dir / f"{pdf_id}_comparison.txt"
@@ -180,11 +180,11 @@ def run_test(doc_id=""):
             results.append((pdf_id, comparison))
 
             # Log detailed results
-            logger.info(f"Results for {pdf_id}:")
-            logger.info(f"Text coverage: {comparison['coverage']*100:.2f}%")
-            logger.info(f"Baseline words: {comparison['total_baseline_words']}")
-            logger.info(f"Ingestor words: {comparison['total_ingestor_words']}")
-            logger.info(f"Words found: {comparison['words_found']}")
+            print(f"Results for {pdf_id}:")
+            print(f"Text coverage: {comparison['coverage']*100:.2f}%")
+            print(f"Baseline words: {comparison['total_baseline_words']}")
+            print(f"Ingestor words: {comparison['total_ingestor_words']}")
+            print(f"Words found: {comparison['words_found']}")
 
             # Add comparison stats to debug file
             with open(debug_file, "a", encoding="utf-8") as f:
@@ -202,13 +202,13 @@ def run_test(doc_id=""):
                     reverse=True,
                 )[:10]
 
-                logger.info("Sample of longest missing words/phrases:")
+                print("Sample of longest missing words/phrases:")
                 # Add missing words to debug file
                 with open(debug_file, "a", encoding="utf-8") as f:
                     f.write("\n=== LONGEST MISSING WORDS ===\n")
                     for i, (word, page_num) in enumerate(longest_missing, 1):
                         msg = f"{i}. (Page {page_num}, {len(word)} chars) {word}"
-                        logger.info(msg)
+                        print(msg)
                         f.write(f"{msg}\n")
 
             # Assert that the coverage is over 93%
@@ -217,7 +217,7 @@ def run_test(doc_id=""):
             ), f"Text coverage for {pdf_id} is below {TEST_COVERAGE_RATIO*100}%: {comparison['coverage']*100:.2f}%"
 
         except Exception as e:
-            logger.error(f"Error processing {pdf_id}: {str(e)}", exc_info=True)
+            print(f"Error processing {pdf_id}: {str(e)}", exc_info=True)
             results.append((pdf_id, {"error": str(e)}))
 
             # Log error to debug file

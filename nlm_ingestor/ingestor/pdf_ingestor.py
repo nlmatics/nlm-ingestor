@@ -68,9 +68,9 @@ def parse_pdf(doc_location, parse_options):
     apply_ocr = parse_options.get("apply_ocr", False) if parse_options else False
     if not apply_ocr:
         wall_time = default_timer() * 1000
-        logger.info("Parsing PDF")
+        print("Parsing PDF")
         parsed_content = pdf_file_parser.parse_to_html(doc_location)
-        logger.info(
+        print(
             f"PDF Parsing finished in {default_timer() * 1000 - wall_time:.4f}ms on workspace",
         )
         soup = BeautifulSoup(str(parsed_content), "html.parser")
@@ -84,7 +84,7 @@ def parse_pdf(doc_location, parse_options):
             # even if ocr is enabled, we don't want to run it if the document is not sparse
             needs_ocr = sparse_page_count / len(pages) > 0.3
             if needs_ocr:
-                logger.info(
+                print(
                     f"Running PDF OCR: sparse_page_count: {sparse_page_count}, n_pages: {len(pages)}"
                 )
 
@@ -92,7 +92,7 @@ def parse_pdf(doc_location, parse_options):
         wall_time = default_timer() * 1000
         parsed_content = pdf_file_parser.parse_to_html(doc_location, do_ocr=True)
         parse_and_apply_hocr(parsed_content)
-        logger.info(
+        print(
             f"PDF OCR finished in {default_timer() * 1000 - wall_time:.4f}ms on workspace",
         )
     # print("returning parsed_content", parsed_content)

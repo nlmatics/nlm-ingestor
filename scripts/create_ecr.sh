@@ -2,7 +2,7 @@
 
 # Variables
 REPO_NAME=$1
-REGION=${2:-us-east-1} # Default region is us-east-1 if not provided
+REGION=${2:-us-east-2} # Default region is us-east-1 if not provided
 
 # Check if repository name is passed
 if [ -z "$REPO_NAME" ]; then

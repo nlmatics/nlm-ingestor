@@ -18,7 +18,7 @@ class FileParserFactory:
             raise Exception(f"unknown implementation {impl} for file format {format}")
         if format not in FileParserFactory.__instance:
             if impl == "tika":
-                # logger.info("tika pasers")
+                # print("tika pasers")
                 from nlm_ingestor.file_parser.tika_parser import TikaFileParser
 
                 FileParserFactory.__instance[format] = TikaFileParser()

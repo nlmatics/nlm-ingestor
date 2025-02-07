@@ -35,7 +35,7 @@ class SpellUtil:
             term_index=0,
             count_index=2,
         ):
-            logger.error(f"Bigram dictionary file not found: {bigram_path}")
+            print(f"Bigram dictionary file not found: {bigram_path}")
             return
 
     def lookup_word(self, input_term):

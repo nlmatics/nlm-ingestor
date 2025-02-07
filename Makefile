@@ -109,10 +109,10 @@ run-test-all: clean build run test clean
 # Deployment Commands
 .PHONY: build_and_push
 build_and_push:
-	docker buildx build --platform linux/amd64 -t nlm-ingestor .
-	aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 010928228783.dkr.ecr.us-east-1.amazonaws.com
-	docker tag nlm-ingestor:latest 010928228783.dkr.ecr.us-east-1.amazonaws.com/nlm-ingestor:latest
-	docker push 010928228783.dkr.ecr.us-east-1.amazonaws.com/nlm-ingestor:latest
+	docker buildx build --platform linux/amd64 -t pacific-nlm-ingestor .
+	aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 010928228783.dkr.ecr.us-east-2.amazonaws.com
+	docker tag pacific-nlm-ingestor:latest 010928228783.dkr.ecr.us-east-2.amazonaws.com/pacific-nlm-ingestor:latest
+	docker push 010928228783.dkr.ecr.us-east-2.amazonaws.com/pacific-nlm-ingestor:latest
 
 # Cleanup Commands
 .PHONY: clean

@@ -33,7 +33,7 @@ class HTMLIngestor:
         self.json_dict = br.render_json()
 
     def parse_blocks(self):
-        self.logger.info("parsing html file")
+        self.print("parsing html file")
 
         header_tags = ["h1", "h2", "h3", "h4", "h5", "h6"]
         para_tags = ["p", "span"]

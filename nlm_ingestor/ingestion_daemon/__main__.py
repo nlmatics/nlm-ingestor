@@ -48,7 +48,7 @@ def parse_document(
         file.save(tmp_file)
         # calculate the file properties
         props = file_utils.extract_file_properties(tmp_file)
-        logger.info(f"Parsing document: {filename}")
+        print(f"Parsing document: {filename}")
         return_dict, _ = ingestor_api.ingest_document(
             filename,
             tmp_file,
@@ -63,7 +63,7 @@ def parse_document(
 
     except Exception as e:
         print("error uploading file, stacktrace: ", traceback.format_exc())
-        logger.error(
+        print(
             f"error uploading file, stacktrace: {traceback.format_exc()}",
             exc_info=True,
         )
@@ -76,7 +76,7 @@ def parse_document(
 
 
 def main():
-    logger.info("Starting ingestor service..")
+    print("Starting ingestor service..")
     app.run(host="0.0.0.0", port=5001, debug=False)
 
 
