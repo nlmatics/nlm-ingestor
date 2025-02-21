@@ -1,5 +1,6 @@
 import copy
 import operator
+import unicodedata
 
 from nlm_ingestor.ingestor import line_parser
 from nlm_ingestor.ingestor.visual_ingestor import table_parser
@@ -8,7 +9,7 @@ from nlm_ingestor.ingestor_utils.utils import detect_block_center_aligned
 LEVEL_DEBUG = False
 NO_INDENT = False
 
-roman_tallies = {
+roman_tallies: dict[str, int] = {
     "I": 1,
     "V": 5,
     "X": 10,
@@ -35,17 +36,67 @@ def roman_numeral_to_decimal(roman_str):
     return roman_sum
 
 
-def get_list_item_sum(number, list_type):
+def roman_numeral_to_decimal(roman_str: str) -> int:
+    """
+    Convert a Roman numeral string to its decimal integer equivalent.
+    Only the portion before any dot ('.') is processed.
+    Returns 0 if any character is invalid.
+
+    Parameters:
+        roman_str (str): The input Roman numeral string.
+
+    Returns:
+        int: The equivalent integer value.
+    """
+    roman_str = roman_str.split(".")[0]
+    roman_sum = 0
+    for i in range(len(roman_str) - 1):
+        left = roman_str[i]
+        right = roman_str[i + 1]
+        # Check both symbols are valid.
+        if left not in roman_tallies or right not in roman_tallies:
+            return 0
+        if roman_tallies[left] < roman_tallies[right]:
+            roman_sum -= roman_tallies[left]
+        else:
+            roman_sum += roman_tallies[left]
+    if roman_str and roman_str[-1] in roman_tallies:
+        roman_sum += roman_tallies[roman_str[-1]]
+    else:
+        return 0
+    return roman_sum
+
+
+def get_list_item_sum(number: str, list_type: str) -> int:
+    """
+    Convert a given string number to an integer value based on the list type.
+
+    For 'roman', converts a Roman numeral (uppercased) to a decimal.
+    For 'integer' or 'integer-dot', splits the string by dots, converts each part's
+    Unicode digits to ASCII (padding single-digit parts), and concatenates them
+    before converting to an integer.
+    For 'letter' or any other type, returns the sum of the Unicode code points.
+
+    Parameters:
+        number (str): The number string to process.
+        list_type (str): One of "roman", "integer", "integer-dot", or "letter".
+
+    Returns:
+        int: The computed integer value.
+    """
     if list_type == "roman":
         return roman_numeral_to_decimal(number.upper())
-    elif list_type == "integer" or list_type == "integer-dot":
+    elif list_type in {"integer", "integer-dot"}:
         new_number = ""
-        for c in number.split("."):
-            if len(c) == 1:
-                new_number += "0"
-            if c.isdigit():
-                new_number += c
-        return int(new_number)
+        for part in number.split("."):
+            normalized = "".join(str(unicodedata.digit(c)) for c in part if c.isdigit())
+            if len(normalized) == 1:
+                normalized = "0" + normalized
+            new_number += normalized
+        try:
+            return int(new_number) if new_number else 0
+        except ValueError:
+            return 0
     elif list_type == "letter":
         return sum(ord(c) for c in number)
     else:

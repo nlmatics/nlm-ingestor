@@ -1,5 +1,4 @@
 # parse style
-from typing import Any
 import copy
 import operator
 import pprint
@@ -9,7 +8,7 @@ import sys
 from collections import OrderedDict, namedtuple
 from itertools import groupby
 from timeit import default_timer
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import numpy as np
 from bs4 import BeautifulSoup
@@ -6281,20 +6280,26 @@ class Doc:
 
     @staticmethod
     def check_line_between_box_styles(
-        prev_blk_box_style,
-        curr_blk_box_style,
-        lines_tag_list,
-        check_gap=False,
-        x_axis_relaxed=False,
-    ):
+        prev_blk_box_style: tuple[float, float, float, float, float],
+        curr_blk_box_style: tuple[float, float, float, float, float],
+        lines_tag_list: List[Any],
+        check_gap: bool = False,
+        x_axis_relaxed: bool = False,
+    ) -> bool:
         """
-        Check whether there is a line between the blocks / visual_lines represented by box_styles
-        :param prev_blk_box_style:
-        :param curr_blk_box_style:
-        :param lines_tag_list:
-        :param check_gap: Checks the gap between line and the blocks
-        :param x_axis_relaxed: Relax the left/right check for the current box style.
-        :return:
+        Checks whether there is a line between two blocks (represented by their box styles)
+        by comparing coordinates from SVG line tags. Converts coordinate values to float
+        to avoid type mismatches.
+
+        Parameters:
+            prev_blk_box_style (Tuple[float, float, float, float, float]): (top, left, right, width, height)
+            curr_blk_box_style (Tuple[float, float, float, float, float]): Same as above for the current block.
+            lines_tag_list (List[Any]): List of SVG line tags.
+            check_gap (bool): Whether to check gap differences.
+            x_axis_relaxed (bool): If True, relax the left/right conditions.
+
+        Returns:
+            bool: True if a suitable line is found between the two boxes, otherwise False.
         """
         ret_val = False
         if prev_blk_box_style and curr_blk_box_style and lines_tag_list:
@@ -6307,34 +6312,34 @@ class Doc:
             right2 = curr_blk_box_style[2]
 
             for line in lines_tag_list:
-                # Not doing exact match on top of the next element as sometimes lines are thick
+                try:
+                    line_y1 = float(line.get("y1", 0))
+                    line_x1 = float(line.get("x1", 0))
+                    line_x2 = float(line.get("x2", 0))
+                except (TypeError, ValueError):
+                    continue
+
                 if (
-                    bottom1 <= line["y1"] <= (top2 + 2.0)
-                    and line["x1"] <= left1 <= line["x2"]
-                    and line["x1"] <= left2 <= line["x2"]
-                    and line["x1"] < right1 <= line["x2"]
-                    and line["x1"] < right2 <= line["x2"]
+                    bottom1 <= line_y1 <= (top2 + 2.0)
+                    and line_x1 <= left1 <= line_x2
+                    and line_x1 <= left2 <= line_x2
+                    and line_x1 < right1 <= line_x2
+                    and line_x1 < right2 <= line_x2
                 ):
                     if check_gap:
-                        if (
-                            abs(abs(line["y1"] - bottom1) - abs(top2 - line["y1"]))
-                            < 2.0
-                        ):
+                        if abs(abs(line_y1 - bottom1) - abs(top2 - line_y1)) < 2.0:
                             ret_val = True
                     else:
                         ret_val = True
                     break
                 elif (
                     x_axis_relaxed
-                    and bottom1 <= line["y1"] <= (top2 + 2.0)
-                    and line["x1"] <= left1 < line["x2"]
-                    and line["x1"] < right1 <= line["x2"]
+                    and bottom1 <= line_y1 <= (top2 + 2.0)
+                    and line_x1 <= left1 < line_x2
+                    and line_x1 < right1 <= line_x2
                 ):
                     if check_gap:
-                        if (
-                            abs(abs(line["y1"] - bottom1) - abs(top2 - line["y1"]))
-                            < 2.0
-                        ):
+                        if abs(abs(line_y1 - bottom1) - abs(top2 - line_y1)) < 2.0:
                             ret_val = True
                     else:
                         ret_val = True
