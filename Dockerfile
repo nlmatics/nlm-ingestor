@@ -4,9 +4,20 @@ RUN apt-get update && apt-get -y --no-install-recommends install libgomp1
 ENV APP_HOME /root
 ENV PYTHONPATH="${PYTHONPATH}:${APP_HOME}"
 ENV PYTHONUNBUFFERED=1
+# Update system packages to get latest security fixes
+RUN apt-get update && \
+  apt-get upgrade -y && \
+  apt-get install -y --no-install-recommends \
+  libxml2 \
+  sqlite3 \
+  libopenjpeg2 \
+  postgresql-client && \
+  rm -rf /var/lib/apt/lists/*
+
 # install Java
 RUN mkdir -p /usr/share/man/man1 && \
   apt-get update -y && \
+  apt-get upgrade -y && \
   apt-get install -y openjdk-17-jre-headless
 # install essential packages
 RUN apt-get install -y \

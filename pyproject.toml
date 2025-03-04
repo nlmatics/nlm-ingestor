@@ -24,6 +24,8 @@ mistune = "2.0.3"
 lxml = "4.9.1"
 unidecode = "^1.3.8"
 nlm-utils = "^0.1.2"
+logfire = {extras = ["system-metrics"], version = "^3.6.4"}
+
 
 
 [tool.poetry.group.dev.dependencies]

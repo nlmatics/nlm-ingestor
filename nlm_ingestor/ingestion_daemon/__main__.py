@@ -3,12 +3,16 @@ import os
 import tempfile
 import traceback
 
+import logfire
 from flask import Flask, jsonify, make_response, request
 from nlm_utils.utils import file_utils
 from werkzeug.utils import secure_filename
 
 import nlm_ingestor.ingestion_daemon.config as cfg
 from nlm_ingestor.ingestor import ingestor_api
+
+logfire.configure(service_name="nlm-ingestor")
+logfire.instrument_system_metrics(base="full")
 
 app = Flask(__name__)
 
