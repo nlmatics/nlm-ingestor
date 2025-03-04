@@ -33,7 +33,7 @@ jobs:
 
       # Caching Python dependencies
       - name: Cache pip dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
@@ -44,7 +44,7 @@ jobs:
 
       # Cache Tika Server
       - name: Cache Tika Server
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: jars
           key: ${{ runner.os }}-tika-server-2.9.2
