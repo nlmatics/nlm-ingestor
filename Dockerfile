@@ -10,7 +10,7 @@ RUN apt-get update && \
   apt-get install -y --no-install-recommends \
   libxml2 \
   sqlite3 \
-  libopenjpeg2 \
+  libopenjp2-7 \
   postgresql-client && \
   rm -rf /var/lib/apt/lists/*
 
