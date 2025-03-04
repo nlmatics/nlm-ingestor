@@ -25,4 +25,4 @@ fi
 
 # Verify the switch
 echo "Switched to profile: $profile"
-aws sts get-caller-identity
+aws sts get-caller-identity || { echo "Failed to verify credentials. Please check your AWS configuration."; exit 1; }
