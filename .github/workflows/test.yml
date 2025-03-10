@@ -61,6 +61,11 @@ jobs:
           poetry config virtualenvs.create false
           poetry install --with dev --no-interaction
 
+      - name: Download NLTK data
+        run: |
+          python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
+          
+
       - name: Verify pdfplumber installation
         run: |
           python -c "import pdfplumber; print(f'pdfplumber version: {pdfplumber.__version__}')"
