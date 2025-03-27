@@ -1,0 +1,113 @@
+name: Test
+on:
+  pull_request:
+    paths:
+      - "**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      # Caching Python dependencies
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+
+      # Cache Tika Server
+      - name: Cache Tika Server
+        uses: actions/cache@v4
+        with:
+          path: jars
+          key: ${{ runner.os }}-tika-server-2.9.2
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3-dev
+
+      - name: Install Poetry and dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install poetry
+          poetry config virtualenvs.create false
+          poetry install --with dev --no-interaction
+
+      - name: Verify pdfplumber installation
+        run: |
+          python -c "import pdfplumber; print(f'pdfplumber version: {pdfplumber.__version__}')"
+
+      - name: Download NLTK data
+        run: |
+          python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
+
+      - name: Run regular tests
+        run: |
+          pkill -f "tika" > /dev/null 2>&1 || true
+          pytest tests/
+
+      - name: Run PDF ingestor tests with Tika
+        run: |
+          # Clean up any existing Tika processes
+          pkill -f "tika-server" > /dev/null 2>&1 || true
+          rm -f .tika.pid tika.log
+          
+          # Start Tika server in background and save PID
+          java -jar jars/tika-server-standard-nlm-modified-2.9.2_v2.jar > tika-startup.log 2>&1 &
+          echo $! > .tika.pid
+          
+          # Give Tika time to start and verify it's running
+          for i in {1..30}; do
+            if curl -s http://localhost:9998/tika > /dev/null; then
+              echo "Tika server started successfully"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Tika server failed to start. Logs:"
+              cat tika-startup.log
+              exit 1
+            fi
+            sleep 1
+          done
+          
+          # Run tests with better error handling
+          if ! PYTHONPATH=. poetry run python tests/run_ingestor_page_test.py 2>&1 | tee test-output.log; then
+            echo "Tests failed. Displaying logs:"
+            echo "=== Tika Startup Logs ==="
+            cat tika-startup.log || true
+            echo "=== Test Output Logs ==="
+            cat test-output.log || true
+            pkill -f "tika-server" || true
+            exit 1
+          fi
+          
+          # Cleanup
+          pkill -f "tika-server" || true

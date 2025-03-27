@@ -3,16 +3,16 @@ import logging
 import os
 
 import mistune
-from nlm_ingestor.ingestor_utils.utils import sent_tokenize
 
 import nlm_ingestor.ingestion_daemon.config as cfg
-from nlm_ingestor.ingestor_utils.ing_named_tuples import LineStyle
 from nlm_ingestor.ingestor.visual_ingestor import block_renderer
-
+from nlm_ingestor.ingestor_utils.ing_named_tuples import LineStyle
+from nlm_ingestor.ingestor_utils.utils import sent_tokenize
 
 # initialize logging
 logger = logging.getLogger(__name__)
 logger.setLevel(cfg.log_level())
+
 
 def parse_markdown_to_blocks(markdown_text):
     state = {}
@@ -65,6 +65,7 @@ def convert_mistune_to_paragraph(token, level):
         },
     ]
 
+
 def convert_mistune_to_code_paragraph(token, level):
     return [
         {
@@ -74,6 +75,7 @@ def convert_mistune_to_code_paragraph(token, level):
             "level": level,
         },
     ]
+
 
 def convert_mistune_to_table(token, level):
     blocks = []
@@ -131,6 +133,7 @@ def convert_mistune_to_list_item(token, level):
         blocks.append(block)
     return blocks
 
+
 def convert_mistune_to_paragraphs(token, level):
     print("token is:", token)
     blocks = []
@@ -152,6 +155,7 @@ def convert_mistune_to_paragraphs(token, level):
             }
             blocks.append(block)
     return blocks
+
 
 class MarkdownDocument:
     def __init__(self, doc_location):

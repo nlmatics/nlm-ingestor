@@ -1,7 +1,5 @@
 from dataclasses import dataclass  # noreorder
-
-from typing import Any
-from typing import List
+from typing import Any, List
 
 
 @dataclass

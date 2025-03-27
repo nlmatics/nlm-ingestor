@@ -19,18 +19,20 @@ class TableParser:
         table_infos = []
         table_start_idx = None
         for idx, info in enumerate(infos):
-            if info.get("is_table_start", False) and not info.get("has_merged_cells", False):
-                self.logger.debug(f"Found table start from match_idx:{idx}")
+            if info.get("is_table_start", False) and not info.get(
+                "has_merged_cells", False
+            ):
+                self.print(f"Found table start from match_idx:{idx}")
                 table_start_idx = idx
                 table_infos.append(info)
             elif table_start_idx is not None and info.get("is_table_end", False):
                 table_infos.append(info)
-                self.logger.debug(f"Table ends with match_idx:{idx}")
+                self.print(f"Table ends with match_idx:{idx}")
                 # resolve table
                 try:
                     df = self.resolve_table_from_infos(table_infos)
                     if isinstance(df, pd.DataFrame):
-                        self.logger.info(
+                        self.print(
                             f"Found table at match_idx:{idx} of shape {df.shape}",
                         )
                         self.tables[table_start_idx] = df
@@ -43,11 +45,11 @@ class TableParser:
                                 self.two_column_table_idx.add(idx - info_idx)
                         self.resolved_tables.add(table_infos[0]["table_idx"])
                     else:
-                        self.logger.error(
+                        self.print(
                             f"Found table at match_idx:{idx} but failed to parse\n{table_infos[:2]}",
                         )
                 except Exception:
-                    self.logger.error(
+                    self.print(
                         f"Failed to parse table:\n{table_infos[:2]}",
                         exc_info=True,
                     )
@@ -64,22 +66,27 @@ class TableParser:
         column_names = []
         cur_index = 0
         # process header_group and header to get column_names
-        while cur_index < len(table_infos) and (table_infos[cur_index].get("is_header_group", False) or table_infos[
-            cur_index
-        ].get("is_header", False)):
+        while cur_index < len(table_infos) and (
+            table_infos[cur_index].get("is_header_group", False)
+            or table_infos[cur_index].get("is_header", False)
+        ):
             column_info = table_infos[cur_index]
             if "col_spans" in column_info:
                 column_names.append([])
                 for span_idx, span_width in enumerate(column_info["col_spans"]):
                     for i in range(span_width):
                         if len(column_names) > 0:
-                            column_names[-1].append(column_info["cell_values"][span_idx])
+                            column_names[-1].append(
+                                column_info["cell_values"][span_idx]
+                            )
             else:
                 column_names.append(column_info["cell_values"])
             cur_index += 1
 
         if cur_index == len(table_infos):
-            self.logger.error(f"No actual table rows other than headers.. skipping current table")
+            self.print(
+                f"No actual table rows other than headers.. skipping current table"
+            )
             return
         # only one level of column_name, flatten
         if len(column_names) == 1 and isinstance(column_names[0], list):
@@ -146,7 +153,9 @@ class TableParser:
                 col_names_at_idx = []
                 for col_level in range(len(column_names)):
                     col_name = column_names[col_level][idx]
-                    col_names_at_idx.append(col_name if "_UNKNOWN_COLUMN" not in col_name else "")
+                    col_names_at_idx.append(
+                        col_name if "_UNKNOWN_COLUMN" not in col_name else ""
+                    )
                 merged_col_names_at_idx = " ".join(col_names_at_idx)
 
                 if not merged_col_names_at_idx:
@@ -164,12 +173,14 @@ class TableParser:
             # drop all None columns
             df = df.dropna(how="all", axis="columns").fillna("")
         except Exception as e:
-            self.logger.error(f"Failed to create DataFrame. Please check ingestor. {e} \n"
-                              f"col names:\n{column_names} \ndata:\n{data[0:3]}")
+            self.print(
+                f"Failed to create DataFrame. Please check ingestor. {e} \n"
+                f"col names:\n{column_names} \ndata:\n{data[0:3]}"
+            )
             return
 
         index_column = self.resolve_index(df)
-        self.logger.debug(f"Column with idx:{index_column} is index")
+        self.print(f"Column with idx:{index_column} is index")
 
         if len(set(multi_index)) > 1:
             df["_MULTI_INDEX_"] = multi_index
@@ -189,7 +200,7 @@ class TableParser:
         #         df.replace(r"^\s*$", np.nan, regex=True).count().sum()
         #         < df.shape[0] * df.shape[1] * 0.5
         #     ):
-        #         self.logger.info("50% entries is empty, skipping current table")
+        #         self.print("50% entries is empty, skipping current table")
         #         return
 
         return df
@@ -220,10 +231,15 @@ class TableParser:
             }
             if column_idx == 0 and _shape["number_column"]:
                 # Check whether we are dealing with a year column
-                _shape["is_year_column"] = pd.to_numeric(
-                    column_value,
-                    errors="coerce",
-                ).dropna().between(1900, 2500).all()
+                _shape["is_year_column"] = (
+                    pd.to_numeric(
+                        column_value,
+                        errors="coerce",
+                    )
+                    .dropna()
+                    .between(1900, 2500)
+                    .all()
+                )
 
             shapes.append(_shape)
 
@@ -232,17 +248,17 @@ class TableParser:
 
         # # column is unique, or duplicated when combine with existing, it must not be index
         # if shapes[0]["is_unique"] or shapes[0]["is_duplicated"]:
-        #     self.logger.debug(f"First column has duplicates, it can not be an index")
+        #     self.print(f"First column has duplicates, it can not be an index")
         #     first_column_impossible = True
 
         # first column is number, it can not be an index only if the column is not an year value
         if shapes[0]["number_column"] and not shapes[0].get("is_year_column", False):
-            self.logger.debug("First column is number, it can not be an index")
+            self.print("First column is number, it can not be an index")
             first_column_impossible = True
 
         # # column is unique, or duplicated when combine with existing, it must not be index
         # if shapes[-1]["is_unique"] or shapes[-1]["is_duplicated"]:
-        #     self.logger.debug(f"Last column has duplicates, it can not be an index")
+        #     self.print(f"Last column has duplicates, it can not be an index")
         #     last_column_impossible = True
 
         # fist column is possible
@@ -251,7 +267,7 @@ class TableParser:
             if shapes[0]["no_column_name"] and any(
                 [x["no_column_name"] for x in shapes[1:]],
             ):
-                self.logger.debug(
+                self.print(
                     "First column has no name, and other contain column name",
                 )
                 return 0
@@ -261,7 +277,7 @@ class TableParser:
                 and max([x["number_column"] for x in shapes[1:]]) > 0
             ):
 
-                self.logger.debug(
+                self.print(
                     "First column has no number, and other contain numbers",
                 )
                 return 0
@@ -273,7 +289,7 @@ class TableParser:
                 [x["no_column_name"] for x in shapes[:-1]],
             ):
 
-                self.logger.debug(
+                self.print(
                     "Last column has no name, and other contain column name",
                 )
                 return -1
@@ -282,14 +298,14 @@ class TableParser:
                 shapes[-1]["number_column"] == 0
                 and max([x["number_column"] for x in shapes[:-1]]) > 0
             ):
-                self.logger.debug(
+                self.print(
                     "Last column has no number, and other contain numbers",
                 )
                 return -1
 
         # default first column as index
         if not first_column_impossible:
-            self.logger.debug("default first column as index")
+            self.print("default first column as index")
             return 0
         else:
             return None
@@ -330,8 +346,10 @@ class TableParser:
 
         # create es record for rows
         cols = df.columns
-        if isinstance(df.index, pd.MultiIndex) and all(isinstance(col, tuple) for col in df.columns):
-            df.columns = [' '.join(col).strip() for col in df.columns]
+        if isinstance(df.index, pd.MultiIndex) and all(
+            isinstance(col, tuple) for col in df.columns
+        ):
+            df.columns = [" ".join(col).strip() for col in df.columns]
 
         for idx, (index, row) in enumerate(df.iterrows()):
             if not isinstance(index, tuple):
@@ -353,14 +371,34 @@ class TableParser:
             for columnIndex, value in row.items():
                 if not columnIndex.startswith("_UNKNOWN"):
                     if not index_name.startswith("("):
-                        final_text = index_name + " " + table_row_index_text + " " + columnIndex + " " + value
+                        final_text = (
+                            index_name
+                            + " "
+                            + table_row_index_text
+                            + " "
+                            + columnIndex
+                            + " "
+                            + value
+                        )
                     else:
-                        final_text = table_row_index_text + " " + columnIndex + " " + value + " " + index_name
+                        final_text = (
+                            table_row_index_text
+                            + " "
+                            + columnIndex
+                            + " "
+                            + value
+                            + " "
+                            + index_name
+                        )
                 else:
                     if not index_name.startswith("("):
-                        final_text = index_name + " " + table_row_index_text + " " + value
+                        final_text = (
+                            index_name + " " + table_row_index_text + " " + value
+                        )
                     else:
-                        final_text = table_row_index_text + " " + value + " " + index_name
+                        final_text = (
+                            table_row_index_text + " " + value + " " + index_name
+                        )
                 cell_texts.append(final_text.strip())
 
             es_index.append(table_row)

@@ -2,10 +2,10 @@ import logging
 import os
 
 from bs4 import BeautifulSoup
+from nlm_utils.utils.utils import ensure_bool
 from tika import parser
 
 from nlm_ingestor.file_parser.file_parser import FileParser
-from nlm_utils.utils.utils import ensure_bool
 
 
 class TikaFileParser(FileParser):
@@ -16,25 +16,33 @@ class TikaFileParser(FileParser):
         # Turn off OCR by default
         timeout = 3000
         headers = {
-            "X-Tika-OCRskipOcr": "true"
+            "X-Tika-OCRskipOcr": "true",
+            "X-Tika-PDFOcrStrategy": "auto",
+            "X-Tika-PDFExtractFontNames": "true",
         }
         if do_ocr:
             headers = {
                 "X-Tika-OCRskipOcr": "false",
                 "X-Tika-OCRoutputType": "hocr",
                 "X-Tika-Timeout-Millis": str(100 * timeout),
+                "X-Tika-PDFOcrStrategy": "ocr_only",
                 "X-Tika-OCRtimeoutSeconds": str(timeout),
             }
 
         if ensure_bool(os.environ.get("TIKA_OCR", False)):
             headers = None
-        return parser.from_file(filepath, xmlContent=True, requestOptions={'headers': headers, 'timeout': timeout})
+        return parser.from_file(
+            filepath,
+            xmlContent=True,
+            requestOptions={"headers": headers, "timeout": timeout},
+        )
 
     def parse_to_clean_html(self, filepath):
         if not find_tika_header(filepath):
             with open(filepath) as file:
                 file_data = BeautifulSoup(
-                    file.read(), features="html.parser",
+                    file.read(),
+                    features="html.parser",
                 ).prettify()
             return parser.from_buffer(file_data, xmlContent=True)
         else:

@@ -32,7 +32,7 @@ There are two ways to process these types of documents
 1. Install latest version of java from https://www.oracle.com/java/technologies/downloads/
 2. Run the tika server:
 ```
- java -jar <path_to_nlm_ingestor>/jars/tika-server-standard-nlm-modified-2.4.1_v6.jar
+java -jar <path_to_nlm_ingestor>/jars/tika-server-standard-nlm-modified-2.9.2_v2.jar
 ```
 3. Install the ingestor
 ```
@@ -56,7 +56,7 @@ docker run -p 5010:5001 ghcr.io/nlmatics/nlm-ingestor:latest-<version>
 Once you have the server running, you can use the [llmsherpa](https://github.com/nlmatics/llmsherpa) API library to get chunks and use them for your LLM projects. Your llmsherpa_url will be:
 "http://localhost:5010/api/parseDocument?renderFormat=all"
 - to apply OCR add &applyOcr=yes
-- to use the new indent parser which uses a different alogrithm to assign header levels, add &useNewIndentParser=yes
+- to use the new indent parser which uses a different algorithm to assign header levels, add &useNewIndentParser=yes
 - this server is good for your development - in production it is recommended to run this behind a secure gateway using nginx or cloud gateways
 
 ### Test the ingestor server
@@ -107,3 +107,15 @@ Some ideas for future work:
 1) Make the changes independent of tika by writing own wrapper over pdfbox
 2) Upgrade to latest version of tika 
 3) Cleanup the format of returned html to make it more css friendly
+
+
+### Pacific Readme
+
+1. run tests
+`make test`
+`make test-pdf-ingestor`
+
+2. build image. This pushes to the Pacific production ECR repo.
+`make build_and_push`
+
+3. After image build, you need to go to the pacific-server repo and deploy the modal app. Make sure you have the Pacific prod aws vars as env vars in your local environment.

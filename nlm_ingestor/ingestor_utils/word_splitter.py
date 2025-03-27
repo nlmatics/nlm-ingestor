@@ -5,7 +5,8 @@ from math import log
 import nlm_ingestor.ingestor as ingestor
 
 word_file = os.path.join(
-    os.path.dirname(os.path.abspath(ingestor.__file__)), "../ingestor_utils/words.txt",
+    os.path.dirname(os.path.abspath(ingestor.__file__)),
+    "../ingestor_utils/words.txt",
 )
 
 

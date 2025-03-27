@@ -1,0 +1,77 @@
+UNITED STATES
+SECURITIES AND EXCHANGE COMMISSION
+WASHINGTON, D.C. 20549
+FORM 8-K
+CURRENT REPORT
+Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934
+Date of Report (Date of earliest event reported): March 15, 2023
+AGILENT TECHNOLOGIES, INC.
+(Exact name of Registrant as Specified in Its Charter)
+Delaware 001-15405 77-0518772
+(State or Other Jurisdiction (Commission File Number) (IRS Employer
+of Incorporation) Identification No.)
+5301 Stevens Creek Boulevard
+Santa Clara, California 95051
+(Address of Principal Executive Offices) (Zip Code)
+Registrant’s Telephone Number, Including Area Code: 800 227-9770
+(Former Name or Former Address, if Changed Since Last Report)
+Check the appropriate box below if the Form 8-K filing is intended to simultaneously satisfy the filing obligation of the registrant under any of the following provisions:
+☐ Written communications pursuant to Rule 425 under the Securities Act (17 CFR 230.425)
+☐ Soliciting material pursuant to Rule 14a-12 under the Exchange Act (17 CFR 240.14a-12)
+☐ Pre-commencement communications pursuant to Rule 14d-2(b) under the Exchange Act (17 CFR 240.14d-2(b))
+☐ Pre-commencement communications pursuant to Rule 13e-4(c) under the Exchange Act (17 CFR 240.13e-4(c))
+Securities registered pursuant to Section 12(b) of the Act:
+Trading
+Title of each class Symbol(s) Name of each exchange on which registered
+Common Stock, $0.01 par value A New York Stock Exchange
+Indicate by check mark whether the registrant is an emerging growth company as defined in Rule 405 of the Securities Act of 1933 (§ 230.405 of this chapter) or Rule
+12b-2 of the Securities Exchange Act of 1934 (§ 240.12b-2 of this chapter).
+Emerging growth company ☐
+If an emerging growth company, indicate by check mark if the registrant has elected not to use the extended transition period for complying with any new or revised
+financial accounting standards provided pursuant to Section 13(a) of the Exchange Act. ☐
+Item 5.07 Submission of Matters to a Vote of Security Holders
+The Annual Meeting of Stockholders of the Company was held on March 15, 2023 (the “Annual Meeting”). A total of 268,236,519 shares of
+Common Stock, representing approximately 90% of the shares outstanding, were represented at the Annual Meeting. The voting results for each
+item of business presented at the Annual Meeting, as certified by the Company’s independent inspector of elections, are set forth below:
+Proposal No. 1 The election of four (4) directors for a term of three years. The individuals listed below received the affirmative vote of a
+majority of the votes cast by the shares present in person or represented by proxy and entitled to vote at the Annual Meeting and were each elected
+to serve a three-year term.
+Name For Against Abstain Broker Non-Vote
+Heidi K. Kunz 199,252,742 49,152,480 378,386 19,452,911
+Susan H. Rataj 226,926,105 21,488,352 369,151 19,452,911
+George A. Scangos, Ph.D. 212,737,808 35,656,600 389,200 19,452,911
+Dow R. Wilson 222,110,567 26,281,390 391,650 19,452,911
+Directors Mala Anand, Hans E. Bishop, Otis W. Brawley, M.D., Mikael Dolsten, M.D., Ph.D., Koh Boon Hwee, Michael R. Mc Mullen and
+Daniel K. Podolsky, M.D. continued in office following the Annual Meeting.
+Proposal No. 2 The non-binding advisory vote to approve the compensation of the Company’s named executive officers was approved as set
+forth below.
+For Against Abstain Broker Non-Vote
+221,637,626 26,620,106 525,876 19,452,911
+Proposal No. 3 The proposal to ratify the Audit and Finance Committee’s appointment of Pricewaterhouse Coopers LLP as the Company’s
+independent registered public accounting firm for the 2023 fiscal year was approved as set forth below.
+For Against Abstain Broker Non-Vote(1)
+250,442,534 17,382,457 411,382 146
+Proposal No. 4 The proposal regarding the approval of amendments to the Company’s Certificate of Incorporation to permit stockholders
+holding not less than 20% of our voting stock continuously for at least 1 year to call a special meeting of stockholders was approved as set forth
+below.
+For Against Abstain Broker Non-Vote
+248,052,193 380,435 350,980 19,452,911
+Proposal No. 5 The results of the non-binding advisory vote on the frequency of the stockholder advisory votes to approve the compensation of
+the Company’s named executive officers was approved as set forth below.
+1 Year 2 Years 3 Years Abstain Broker Non-Vote
+244,419,390 127,458 1,580,592 360,133 21,748,946
+(1) Pursuant to the rules of the New York Stock Exchange, this proposal constituted a routine matter. Therefore, brokers were permitted to vote without receipt of instructions from
+beneficial owners.
+Item 9.01. Financial Statements and Exhibits.
+(d) Exhibits
+Exhibit No. Description
+3.1 Second Amended and Restated Certificate of Incorporation
+104 Cover Page Interactive Data File (embedded within the Inline XBRL document)
+SIGNATURES
+Pursuant to the requirements of the Securities Exchange Act of 1934, the registrant has duly caused this report to be signed on its behalf by the undersigned thereunto
+duly authorized.
+AGILENT TECHNOLOGIES, INC.
+Date: March 17, 2023 By: /s/ P. Diana Chiu
+Name: P. Diana Chiu
+Title: Vice President, Assistant General Counsel
+& Assistant Secretary

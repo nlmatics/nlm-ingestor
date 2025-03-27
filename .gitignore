@@ -141,3 +141,9 @@ dmypy.json
 
 # DS_Store
 .DS_Store
+
+# Tika Server
+.tika.pid
+
+# test debug files
+files/debug/*

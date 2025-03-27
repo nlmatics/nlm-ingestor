@@ -6,15 +6,14 @@ import string
 
 from nltk.corpus import stopwords
 
-from .patterns import abbreviations
-from .patterns import states
-from .patterns import states_abbreviations
+from .patterns import abbreviations, states, states_abbreviations
 from .styling_utils import mode_of_list
 
+logger = logging.getLogger(__name__)
 try:
     stop_words = set(stopwords.words("english"))
 except Exception as e:
-    logging.error(e)
+    print(e)
     import nltk
 
     stopwords = nltk.download("stopwords")
@@ -66,9 +65,7 @@ unicode_list_types = {
     "\\uf0b7": "•",
     "\\uf0fc": "",
 }
-footnote_types = {
-    "©"
-}
+footnote_types = {"©"}
 ambiguous_list_chars = ["+", "-"]
 units = ["acres", "miles", "-"]  # - could represent a null value in a row
 punctuations = string.punctuation + "“"
@@ -88,10 +85,12 @@ Quote Pattern details:
 quote_pattern = re.compile(
     r'(?:(?<=\W)|(?<=^))["“‘’\']+(?!\D\s)(?!\d+)(.*?)[,;.]?[”"‘’\']+',
 )  # (r'["“\'](.*?)[,;.]?[”"\']')
-single_char_pattern = re.compile(r'[a-zA-Z]')
-multi_char_pattern = re.compile(r'[a-zA-Z]+')
-roman_number_pattern = re.compile(r'[ixvIXV]+$')
-ends_with_sentence_delimiter_pattern = re.compile(r"(?<![.;:][a-zA-Z0-9])(?<!INC|inc|Inc)[.;:]+(?![\w])[\"“‘’”\'\s]*$")
+single_char_pattern = re.compile(r"[a-zA-Z]")
+multi_char_pattern = re.compile(r"[a-zA-Z]+")
+roman_number_pattern = re.compile(r"[ixvIXV]+$")
+ends_with_sentence_delimiter_pattern = re.compile(
+    r"(?<![.;:][a-zA-Z0-9])(?<!INC|inc|Inc)[.;:]+(?![\w])[\"“‘’”\'\s]*$"
+)
 conjunction_list = ["for", "and", "not", "but", "or", "yet", "so", "between"]
 
 
@@ -113,15 +112,15 @@ class Word:
         self.parts = []
         text_without_punct = self.text
 
-        while (
-                len(text_without_punct) > 1 and
-                (text_without_punct[-1] in string.punctuation or text_without_punct[-1] in end_quotations)
+        while len(text_without_punct) > 1 and (
+            text_without_punct[-1] in string.punctuation
+            or text_without_punct[-1] in end_quotations
         ):
             text_without_punct = text_without_punct[0:-1]
         # remove leading unbalancced punctuations
-        while (
-                len(text_without_punct) > 1 and
-                (text_without_punct[0] in string.punctuation or text_without_punct[0] in start_quotations)
+        while len(text_without_punct) > 1 and (
+            text_without_punct[0] in string.punctuation
+            or text_without_punct[0] in start_quotations
         ):
             text_without_punct = text_without_punct[1:]
 
@@ -146,7 +145,7 @@ class Word:
             else:
                 self.num_digits = 0
         except Exception as e:
-            logging.error(e)
+            print(e)
             self.num_digits = 0
 
     def check_date(self):
@@ -235,66 +234,124 @@ class Line:
         self.quoted_words = quote_pattern.findall(self.text)
         self.noun_chunk_ending_tokens = {x.lower() for x in noun_chunk_ending_tokens}
         self.parse_line()
+        self.uppercase_word_count = 0
 
     def check_header(self):
+        """
+        Determines whether the current line is a header based on various patterns and conditions.
+        """
 
-        # Section X, Article Y, Note 1 etc.
+        # Immediately identify lines starting with '%' as headers
+        if self.text.startswith("%"):
+            self.is_header = True
+            return
+
+        # Define and apply regex pattern for numbered headers (e.g., "13. Audit Rights" or "4. 400 WESTLAKE PROJECT")
+        numbered_header_pattern = re.compile(r"^\d+\.\s+(\d+|[A-Z])")
+        if numbered_header_pattern.match(self.text):
+            self.is_header = True
+            return
+
+        # Existing numbered header check: lines that start with a number followed by a period and a capitalized word
+        if self.numbered_line:
+            if len(self.words) > 1:
+                second_word = self.words[1].text
+                if second_word.isdigit() or second_word[0].isupper():
+                    self.is_header = True
+                    return
+
+        # Check for specific keywords that typically indicate headers
         first_word_header = self.first_word.lower() in ["section", "article", "note"]
 
-        # If there are a certain percentage of title words (first letter capitalize)
+        # Additional check for numbered headers similar to above
+        numbered_header = (
+            self.numbered_line
+            and len(self.words) > 1
+            and self.words[1].text[0].isupper()
+        )
+
+        # Identify if the line contains a page number, which should not be considered a header
+        contains_page_number = (
+            any(word.text.lower().startswith("page") for word in self.words)
+            and self.number_count == 1
+        )
+
+        # Calculate the ratio of title-like words (starting with uppercase) to effective word count
         title_ratio = (
             self.title_word_count / self.eff_word_count
             if self.eff_word_count > 0
             else 1.0
         )
-        # print(self.title_word_count, self.eff_word_count, title_ratio)
 
-        # Section 1 is a header but Section 1: Hello 3 is not
+        # Prevent lines ending with a number from being classified as headers
+        if self.last_word.isdigit() and len(self.words) < 5:
+            self.is_header = False
+            return
 
+        # Determine if there are enough title-like words to consider the line a header
         has_enough_titles = title_ratio > 0.9 and self.eff_word_count < 10
+        # print(
+        #     f"title_ratio: {title_ratio}, eff_word_count: {self.eff_word_count}, self.number_count: {self.number_count} for words: {self.text}"
+        # )
 
+        # Assess the overall header structure based on various conditions
         has_header_structure = (
-            (first_word_header or has_enough_titles) and self.number_count == 1
-        ) or self.numbered_line or self.text.isupper()
-        # has_header_structure = has_header_structure and self.eff_word_count <
+            ((first_word_header or has_enough_titles) and self.number_count == 1)
+            or self.numbered_line
+            or self.text.isupper()
+            or numbered_header
+        )
 
-        last_word_number = (
-            self.last_word.lower() in units
-            or self.last_word_number
-            and not has_header_structure
+        # Check if the last word is a number or a date, which typically doesn't qualify as a header
+        last_word_number = self.last_word.lower() in units or (
+            self.last_word_number and not has_header_structure
         )
         last_word_date = self.last_word_date and not has_header_structure
-        # Find lines ending with sentence delimiter. But exclude text like "L.P."
-        ends_with_delim = ends_with_sentence_delimiter_pattern.search(self.text) is not None
-        sentence_structure = self.ends_with_period and not (
-            has_header_structure and title_ratio > 0.9
-        ) and ends_with_delim
 
+        # Determine if the line ends with a sentence delimiter, excluding certain abbreviations
+        ends_with_delim = (
+            ends_with_sentence_delimiter_pattern.search(self.text) is not None
+        )
+        sentence_structure = (
+            self.ends_with_period
+            and not (has_header_structure and title_ratio > 0.9)
+            and ends_with_delim
+        )
+
+        # Check if the last character is punctuation, excluding specific symbols
         last_letter_is_punctuation = (
-            self.last_word[-1] in punctuations and self.last_word[-1] not in ":?.)]%" and
-            ends_with_delim
+            self.last_word[-1] in punctuations
+            and self.last_word[-1] not in ":?.)]%"
+            and ends_with_delim
         )
 
+        # Comprehensive condition to determine if the line is a header without commas
         self.is_header_without_comma = (
-                not sentence_structure
-                and not self.has_list_char
-                and not self.first_char in footnote_types
-                and has_enough_titles
-                and not last_word_number
-                and (
-                        self.number_count == 0
-                        or (has_header_structure and self.number_count <= 1)
-                )
-                and not self.has_continuing_chars
-                and not last_word_date
-                and self.first_word_title
-                and not self.last_word_is_stop_word
-                and not self.is_zipcode_or_po
-                and not last_letter_is_punctuation
-                and not "://" in self.text  # url pattern
+            not sentence_structure
+            and not self.has_list_char
+            and not self.first_char in footnote_types
+            and has_enough_titles
+            and not last_word_number
+            and (
+                self.number_count == 0
+                or (has_header_structure and self.number_count <= 1)
+            )
+            and not self.has_continuing_chars
+            and not last_word_date
+            and self.first_word_title
+            and not self.last_word_is_stop_word
+            and not self.is_zipcode_or_po
+            and not last_letter_is_punctuation
+            and not "://" in self.text  # Exclude URLs
+            and not contains_page_number  # Exclude page numbers
         )
-        self.is_header = self.is_header_without_comma and \
-                         ((not self.text.count(',') > 1) if not self.text.lower().startswith('section') else True)
+
+        # Final determination of whether the line is a header
+        self.is_header = self.is_header_without_comma and (
+            (not self.text.count(",") > 1)
+            if not self.text.lower().startswith("section")
+            else True
+        )
 
     def check_ends_with_period(self):
         # punct_rule = self.last_char in string.punctuation and self.last_char not in [':', '.']
@@ -315,6 +372,12 @@ class Line:
             word_ratio = (
                 value_count + self.title_word_count + self.date_entry_count
             ) / word_symbols
+            # print("Checking table row for text: ", self.text)
+            # print("value_count: ", value_count, "word_symbols: ", word_symbols, "word_ratio: ", word_ratio)
+            # print("ends_with_period: ", self.ends_with_period, "is_zipcode_or_po: ", self.is_zipcode_or_po)
+            # print("last_word_is_stop_word: ", self.last_word_is_stop_word)
+            # print(".... in text: ", "...." in self.text)
+
             self.is_table_row = (
                 (
                     (value_count > 0 or self.date_entry_count > 0)
@@ -323,8 +386,7 @@ class Line:
                     and not self.is_zipcode_or_po
                 )
                 and not self.last_word_is_stop_word
-                or ("...." in self.text)
-            )
+            ) or ("...." in self.text)
         else:
             self.is_table_row = False
 
@@ -412,7 +474,7 @@ class Line:
         if self.numbered_line:
             self.start_number = trunc_word
             self.line_without_number = self.text[len(word) + 1 :]
-            self.full_number = self.text[:len(word)]
+            self.full_number = self.text[: len(word)]
 
     # check if line is part of address
     def check_zipcode_or_pobox(self):
@@ -565,8 +627,14 @@ class Line:
             if word.is_noun or word.text == "&":
                 noun = word.text_without_punct
                 prev_word = self.words[-1] if len(self.words) > 0 else None
-                if prev_word and (prev_word.is_number or prev_word.is_number_range) and not noun_chunk_buf:
-                    noun_chunk_buf.append(prev_word.text_without_punct)  # get stuff like 150 Broadway
+                if (
+                    prev_word
+                    and (prev_word.is_number or prev_word.is_number_range)
+                    and not noun_chunk_buf
+                ):
+                    noun_chunk_buf.append(
+                        prev_word.text_without_punct
+                    )  # get stuff like 150 Broadway
                 if noun.endswith("'s"):
                     noun = noun[0:-2]
                     noun_chunk_buf.append(noun)
@@ -592,7 +660,9 @@ class Line:
         if len(noun_chunk_buf) > 0:
             self.noun_chunks.append(" ".join(noun_chunk_buf))
 
-        self.noun_chunks = sorted(list(set(filter(lambda x: x.lower() not in stop_words, self.noun_chunks))))
+        self.noun_chunks = sorted(
+            list(set(filter(lambda x: x.lower() not in stop_words, self.noun_chunks)))
+        )
         self.first_word = tokens[0]
         self.last_word = tokens[-1]
         self.last_char = self.text[-1]
@@ -645,10 +715,16 @@ class Line:
         self.set_line_type()
 
         if self.is_header or self.is_header_without_comma:
-            if "," in self.text or self.last_word.isupper() and len(self.last_word) <= 2:
+            if (
+                "," in self.text
+                or self.last_word.isupper()
+                and len(self.last_word) <= 2
+            ):
                 self.is_reference_author_name = True
 
-        self.last_word_is_co_ordinate_conjunction = self.ends_with_comma or self.last_word in conjunction_list
+        self.last_word_is_co_ordinate_conjunction = (
+            self.ends_with_comma or self.last_word in conjunction_list
+        )
         # print(self.separate_line)
         # self.continuing_line = not self.separate_line and
 
