@@ -89,7 +89,7 @@ def get_list_item_sum(number: str, list_type: str) -> int:
     elif list_type in {"integer", "integer-dot"}:
         new_number = ""
         for part in number.split("."):
-            normalized = "".join(str(unicodedata.digit(c)) for c in part if c.isdigit())
+            normalized = "".join(str(unicodedata.digit(c)) for c in part if c.isdecimal())
             if len(normalized) == 1:
                 normalized = "0" + normalized
             new_number += normalized

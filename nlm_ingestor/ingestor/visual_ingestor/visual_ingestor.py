@@ -6312,6 +6312,7 @@ class Doc:
             right2 = curr_blk_box_style[2]
 
             for line in lines_tag_list:
+<<<<<<< HEAD
                 try:
                     line_y1 = float(line.get("y1", 0))
                     line_x1 = float(line.get("x1", 0))
@@ -6326,18 +6327,36 @@ class Doc:
                     and line_x1 < right1 <= line_x2
                     and line_x1 < right2 <= line_x2
                 ):
+=======
+                line_x1 = float(line['x1'])  # Ensure x1 is a float
+                line_x2 = float(line['x2'])  # Ensure x2 is a float
+                line_y1 = float(line['y1'])  # Ensure y1 is a float
+                # Not doing exact match on top of the next element as sometimes lines are thick
+                if bottom1 <= line_y1 <= (top2 + 2.0) and \
+                        line_x1 <= left1 <= line_x2 and \
+                        line_x1 <= left2 <= line_x2 and \
+                        line_x1 < right1 <= line_x2 and \
+                        line_x1 < right2 <= line_x2:
+>>>>>>> dd5d01a7fe47b05074487279692ddf8c3b46c9e0
                     if check_gap:
                         if abs(abs(line_y1 - bottom1) - abs(top2 - line_y1)) < 2.0:
                             ret_val = True
                     else:
                         ret_val = True
                     break
+<<<<<<< HEAD
                 elif (
                     x_axis_relaxed
                     and bottom1 <= line_y1 <= (top2 + 2.0)
                     and line_x1 <= left1 < line_x2
                     and line_x1 < right1 <= line_x2
                 ):
+=======
+                elif x_axis_relaxed and \
+                        bottom1 <= line_y1 <= (top2 + 2.0) and \
+                        line_x1 <= left1 < line_x2 and \
+                        line_x1 < right1 <= line_x2:
+>>>>>>> dd5d01a7fe47b05074487279692ddf8c3b46c9e0
                     if check_gap:
                         if abs(abs(line_y1 - bottom1) - abs(top2 - line_y1)) < 2.0:
                             ret_val = True
