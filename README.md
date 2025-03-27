@@ -119,3 +119,5 @@ Some ideas for future work:
 `make build_and_push`
 
 3. After image build, you need to go to the pacific-server repo and deploy the modal app. Make sure you have the Pacific prod aws vars as env vars in your local environment.
+
+If you need to update nlm-utils, go to the nlm-utils repo, update the dependencies, build a whl, and copy under `whl/` in this repo.

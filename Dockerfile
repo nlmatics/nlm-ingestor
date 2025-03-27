@@ -46,6 +46,8 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt-get install -y unzip git && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 WORKDIR ${APP_HOME}
+RUN mkdir -p /${APP_HOME}/whl
+COPY whl/*.whl /root/whl/
 COPY pyproject.toml poetry.lock ./
 RUN pip install poetry && \
   poetry config virtualenvs.create false && \
@@ -55,10 +57,12 @@ RUN apt-get update && apt-get install -y libmagic1 && rm -rf /var/lib/apt/lists/
 
 COPY . ./
 
+
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 <<<<<<< HEAD
 RUN python -m nltk.downloader stopwords
 RUN python -m nltk.downloader punkt
+RUN python -m nltk.downloader punkt_tab
 RUN python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
 =======
 RUN pip install -r requirements.txt
