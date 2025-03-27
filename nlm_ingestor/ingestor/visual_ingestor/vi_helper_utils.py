@@ -1,6 +1,7 @@
 """
 Abode for all Visual Ingestor Helper Utils.
 """
+
 import numpy as np
 
 
@@ -29,7 +30,7 @@ def same_top_index(block):
     :param block: A Block of visual lines
     :return: Return the index of Visual Line which has the same top as the first visual line
     """
-    vls = block['visual_lines']
+    vls = block["visual_lines"]
     if len(vls) == 0:
         return 0
     first_vline = vls[0]
@@ -51,14 +52,16 @@ def compare_top(line_info, prev_line_info):
     :param prev_line_info: Previous Line Info
     :return: True if both the line_info have the same top
     """
-    curr_top = line_info['box_style'][0]
+    curr_top = line_info["box_style"][0]
     prev_top = prev_line_info["box_style"][0]
-    curr_line_top_adj = curr_top + (line_info['box_style'][4]/2)
-    prev_line_top_adj = prev_top + (prev_line_info['box_style'][4]/2)
+    curr_line_top_adj = curr_top + (line_info["box_style"][4] / 2)
+    prev_line_top_adj = prev_top + (prev_line_info["box_style"][4] / 2)
     # prev_bottom = prev_top + prev_line_info['box_style'][4]
-    diff = abs(curr_line_top_adj - prev_line_top_adj)/curr_line_top_adj
+    diff = abs(curr_line_top_adj - prev_line_top_adj) / curr_line_top_adj
     # same_top = 0.99 * prev_line_top_adj <= curr_line_top_adj <= 1.01 * prev_line_top_adj
-    same_top = (diff < 0.005) or (abs(curr_top - prev_top) < (prev_line_info["box_style"][4] / 4))
+    same_top = (diff < 0.005) or (
+        abs(curr_top - prev_top) < (prev_line_info["box_style"][4] / 4)
+    )
     # same_top = prev_top <= curr_top <= prev_bottom
     # print("top compare: ", prev_line_info['text'], line_info['text'], same_top, diff)
     # ratio = prev_line_info['box_style'].top/line_info['box_style'].top
@@ -82,10 +85,14 @@ def find_num_cols(block):
     for curr_vl in vls[1:]:
         found_intersection = False
         for col_vl in col_vls:
-            col_box = col_vl['box_style']
-            curr_box = curr_vl['box_style']
-            if list(range(max(int(col_box[1]), int(curr_box[1])),
-                          min(int(col_box[2]), int(curr_box[2]))+1)):
+            col_box = col_vl["box_style"]
+            curr_box = curr_vl["box_style"]
+            if list(
+                range(
+                    max(int(col_box[1]), int(curr_box[1])),
+                    min(int(col_box[2]), int(curr_box[2])) + 1,
+                )
+            ):
                 # We have an intersection point.
                 found_intersection = True
                 break
@@ -126,7 +133,9 @@ def get_avg_space_bw_multi_line_vls(visual_lines):
     for vl in visual_lines[1:]:
         same_top = compare_top(vl, prev_vl)
         if not same_top and prev_vl["box_style"][0] < vl["box_style"][0]:
-            spaces.append(vl["box_style"][0] - (prev_vl["box_style"][0] + prev_vl["box_style"][4]))
+            spaces.append(
+                vl["box_style"][0] - (prev_vl["box_style"][0] + prev_vl["box_style"][4])
+            )
         prev_vl = vl
     if len(spaces):
         avg_space = np.mean(spaces)

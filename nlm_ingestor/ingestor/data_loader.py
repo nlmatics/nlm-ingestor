@@ -1,9 +1,9 @@
 import pandas as pd
-from nlm_ingestor.ingestor import processors
-from nlm_ingestor.ingestor_utils.utils import sent_tokenize
 
+from nlm_ingestor.ingestor import processors
 from nlm_ingestor.ingestor.visual_ingestor import block_renderer
 from nlm_ingestor.ingestor_utils.ing_named_tuples import LineStyle
+from nlm_ingestor.ingestor_utils.utils import sent_tokenize
 
 
 class DataRowFileInfo:
@@ -27,7 +27,9 @@ class DataRowFileInfo:
     def make_blocks(self):
         block_idx = 0
         blocks = []
-        self.title = " ".join(map(str, self.row[self.title_col_range[0]:self.title_col_range[1]]))
+        self.title = " ".join(
+            map(str, self.row[self.title_col_range[0] : self.title_col_range[1]])
+        )
         title_block = {
             "block_idx": block_idx,
             "page_idx": 0,
@@ -60,8 +62,10 @@ class DataRowFileInfo:
                 block["block_idx"] = block_idx
                 block["page_idx"] = 0
                 block["block_sents"] = sent_tokenize(block["block_text"])
-                block["block_class"] = "nlm-text-body",
-                block["level_chain"] = [self.title, header_text] if self.title else [header_text]
+                block["block_class"] = ("nlm-text-body",)
+                block["level_chain"] = (
+                    [self.title, header_text] if self.title else [header_text]
+                )
                 if len(col_blocks) == 1:
                     block["block_type"] = "para"
                 block_idx = block_idx + 1
@@ -76,10 +80,10 @@ class DataRowFileInfo:
             "500",
             "left",
             0,  # TODO: Decide what font_space_width needs to be added
-            "left"
+            "left",
         )
-        self.line_style_classes[title_style] = 'nlm-text-title'
-        self.class_levels['nlm-text-title'] = 0
+        self.line_style_classes[title_style] = "nlm-text-title"
+        self.class_levels["nlm-text-title"] = 0
         header_style = LineStyle(
             "Roboto, Georgia, serif",
             "normal",
@@ -87,10 +91,10 @@ class DataRowFileInfo:
             "600",
             "left",
             0,  # TODO: Decide what font_space_width needs to be added
-            "left"
+            "left",
         )
-        self.line_style_classes[header_style] = 'nlm-text-header'
-        self.class_levels['nlm-text-header'] = 1
+        self.line_style_classes[header_style] = "nlm-text-header"
+        self.class_levels["nlm-text-header"] = 1
         para_style = LineStyle(
             "Roboto, Georgia, serif",
             "normal",
@@ -98,10 +102,10 @@ class DataRowFileInfo:
             "400",
             "left",
             0,  # TODO: Decide what font_space_width needs to be added
-            "left"
+            "left",
         )
-        self.line_style_classes[para_style] = 'nlm-text-body'
-        self.class_levels['nlm-text-body'] = 2
+        self.line_style_classes[para_style] = "nlm-text-body"
+        self.class_levels["nlm-text-body"] = 2
 
 
 class DataLoader:
@@ -110,15 +114,18 @@ class DataLoader:
         if file_name.endswith(".csv"):
             self.df = pd.read_csv(file_name)
         else:
-            self.df = pd.read_excel(file_name, engine='openpyxl')
-        self.df = self.df.fillna('N/A')
+            self.df = pd.read_excel(file_name, engine="openpyxl")
+        self.df = self.df.fillna("N/A")
         self.title_col_range = title_col_range
         self.filename_col = filename_col
         self.data_row_file_infos = []
         self.parse_data_row_file_infos()
 
     def parse_data_row_file_infos(self):
-        if self.title_col_range[0] > len(self.df.columns) or self.title_col_range[0] < 0:
+        if (
+            self.title_col_range[0] > len(self.df.columns)
+            or self.title_col_range[0] < 0
+        ):
             self.title_col_range[0] = 0
             self.title_col_range[1] = 2
         else:
@@ -131,8 +138,10 @@ class DataLoader:
 
         for index, row in self.df.iterrows():
             print("processing row: ", index)
-            row_file_info = DataRowFileInfo(row=row,
-                                            col_names=self.df.columns,
-                                            filename_col=self.filename_col,
-                                            title_col_range=self.title_col_range)
+            row_file_info = DataRowFileInfo(
+                row=row,
+                col_names=self.df.columns,
+                filename_col=self.filename_col,
+                title_col_range=self.title_col_range,
+            )
             self.data_row_file_infos.append(row_file_info)

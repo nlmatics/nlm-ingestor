@@ -1,7 +1,7 @@
 import unittest
 
-from ingestor import formatter
-from ingestor import processors as pro
+from nlm_ingestor.ingestor import formatter
+from nlm_ingestor.ingestor import processors as pro
 
 
 def fun(x):
