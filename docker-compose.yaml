@@ -1,0 +1,8 @@
+name: nlm-ingestor
+
+services:
+    nlm-ingestor:
+        image: ghcr.io/nlmatics/nlm-ingestor:latest
+        restart: unless-stopped
+        ports:
+        - "5010:5001"
