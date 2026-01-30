@@ -4546,7 +4546,7 @@ class Doc:
         possible_table_blocks = organized_blocks[
             table_start_idx : table_end_idx - footer_count
         ]
-        (left, top, w, h) = self.calculate_block_bounds(possible_table_blocks)
+        left, top, w, h = self.calculate_block_bounds(possible_table_blocks)
         # see if the row before belongs to the table too
         if table_start_idx > 0:
             prev_block = organized_blocks[table_start_idx - 1]
@@ -5227,7 +5227,7 @@ class Doc:
             Tuple as (left, top, right, bottom)
         :return: True if block falls within the bounds else False
         """
-        (left, top, right, bottom) = bound
+        left, top, right, bottom = bound
         # We are not going to be strict about the bottom of box_style and right of box_style
         # Do we need to ?
         return ((top - box_style[4]) <= box_style[0] <= (bottom + box_style[4])) and (
