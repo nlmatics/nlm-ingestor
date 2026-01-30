@@ -49,7 +49,7 @@ WORKDIR ${APP_HOME}
 RUN mkdir -p /${APP_HOME}/whl
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY whl/*.whl /root/whl/
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml uv.lock README.md ./
 RUN uv sync --frozen
 
 RUN apt-get update && apt-get install -y libmagic1 && rm -rf /var/lib/apt/lists/*
@@ -64,4 +64,4 @@ RUN uv run python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
 RUN chmod +x run.sh
 
 EXPOSE 5001
-# CMD ./run.sh
+CMD ./run.sh

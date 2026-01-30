@@ -4,37 +4,35 @@ version = "0.1.0"
 description = "Parsers and ingestors for different file types and formats"
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [
-    { name = "Ambika Sukla", email = "ambika.sukla@nlmatics.com" }
-]
+authors = [{ name = "Ambika Sukla", email = "ambika.sukla@nlmatics.com" }]
 license = { text = "Apache License 2.0" }
 dependencies = [
-    "bs4>=0.0.2",
-    "flask>=3.1.1",
-    "flask-jsonpify>=1.5.0",
-    "flask-restful>=0.3.10",
-    "gunicorn>=23.0.0",
-    "lxml==4.9.1",
-    "mistune==2.0.3",
-    "nlm-utils>=0.1.2",
-    "nltk>=3.9.1",
-    "numpy>=1.24.4",
-    "pandas>=1.2.4",
-    "python-magic>=0.4.22",
-    "symspellpy>=6.7.0",
-    "tika>=2.6.0",
-    "tqdm>=4.67.1",
-    "unidecode>=1.4.0",
-    "werkzeug>=3.1.5",
+  "bs4>=0.0.2",
+  "flask>=3.1.1",
+  "flask-jsonpify>=1.5.0",
+  "flask-restful>=0.3.10",
+  "gunicorn>=23.0.0",
+  "lxml==4.9.1",
+  "mistune==2.0.3",
+  "nlm-utils>=0.1.2",
+  "nltk>=3.9.1",
+  "numpy>=1.24.4",
+  "pandas>=1.2.4",
+  "python-magic>=0.4.22",
+  "symspellpy>=6.7.0",
+  "tika>=2.6.0",
+  "tqdm>=4.67.1",
+  "unidecode>=1.4.0",
+  "werkzeug>=3.1.5",
 ]
 
 [dependency-groups]
 dev = [
-    "black>=26.1.0",
-    "httpx>=0.28.1",
-    "isort>=7.0.0",
-    "pdfplumber>=0.11.7",
-    "pytest>=8.3.5",
+  "black[jupyter]>=26.1.0",
+  "httpx>=0.28.1",
+  "isort>=7.0.0",
+  "pdfplumber>=0.11.7",
+  "pytest>=8.3.5",
 ]
 
 [tool.uv.sources]
@@ -47,8 +45,10 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["nlm_ingestor"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"nlm_ingestor/ingestor_utils/*.txt" = "nlm_ingestor/ingestor_utils/"
+[tool.hatch.build]
+include = [
+  "nlm_ingestor/**/*.txt",
+]
 
 [tool.black]
 target-version = ['py311']
