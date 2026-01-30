@@ -9,24 +9,27 @@ HOST_PORT = 5010
 CONTAINER_PORT = 5001
 
 # Development Commands
-.PHONY: format lint check run_fmt generate_requirements_from_poetry download_nltk_data
+.PHONY: format lint check run_fmt sync export download_nltk_data
 format:
-	poetry run black .
-	poetry run isort .
+	uv run black .
+	uv run isort .
 
 lint:
-	poetry run black --check .
-	poetry run isort --check .
+	uv run black --check .
+	uv run isort --check .
 
 run_fmt: format
 
 check: lint
 
-generate_requirements_from_poetry:
-	poetry export --with dev -f requirements.txt --output requirements.txt
+sync:
+	uv sync
+
+export:
+	uv export --no-hashes > requirements.txt
 
 download_nltk_data:
-	poetry run python -m nltk.downloader punkt stopwords
+	uv run python -m nltk.downloader punkt stopwords punkt_tab
 
 # Tika Server Commands
 .PHONY: start-tika stop-tika check-tika-port kill-existing-tika
@@ -80,12 +83,12 @@ stop-tika:
 .PHONY: test test-pdf-ingestor
 test-pdf-ingestor: start-tika
 	@echo "Running PDF ingestor tests..."
-	PYTHONPATH=. poetry run python tests/run_ingestor_page_test.py
+	PYTHONPATH=. uv run python tests/run_ingestor_page_test.py
 	@make stop-tika
 
 test: start-tika
 	@echo "Running all tests..."
-	poetry run pytest -vvs .
+	uv run pytest -vvs .
 	@make stop-tika
 
 # Docker Test Commands

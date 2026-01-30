@@ -33,22 +33,24 @@ RUN echo "deb https://notesalexp.org/tesseract-ocr5/$(lsb_release -cs)/ $(lsb_re
 
 WORKDIR ${APP_HOME}
 
-# Copy only the requirements file first
-COPY requirements.txt .
+# Copy UV binary from official image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Install Python dependencies
-RUN pip install --upgrade pip setuptools \
-  && pip install -r requirements.txt
+# Copy dependency files
+COPY whl/*.whl /app/whl/
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies using UV
+RUN uv sync --frozen
 
 # Copy the rest of the application
 COPY . .
 
-# Install the application
-RUN pip install .
-
 # Download NLTK data and initialize tiktoken
-RUN python -m nltk.downloader stopwords punkt \
-  && python -c "import tiktoken; tiktoken.get_encoding(\"cl100k_base\")"
+RUN uv run python -m nltk.downloader -d /usr/share/nltk_data stopwords
+RUN uv run python -m nltk.downloader -d /usr/share/nltk_data punkt
+RUN uv run python -m nltk.downloader -d /usr/share/nltk_data punkt_tab
+RUN uv run python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
 
 # Set up SSH for GitHub
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts

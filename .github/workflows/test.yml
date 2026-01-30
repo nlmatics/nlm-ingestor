@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.11"]
 
     steps:
       - name: Check out the code
@@ -31,17 +31,6 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      # Caching Python dependencies
-      - name: Cache pip dependencies
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
-
       # Cache Tika Server
       - name: Cache Tika Server
         uses: actions/cache@v5
@@ -54,25 +43,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential python3-dev
 
-      - name: Install Poetry and dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install poetry
-          poetry config virtualenvs.create false
-          poetry install --with dev --no-interaction
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          version: latest
 
       - name: Verify pdfplumber installation
         run: |
-          python -c "import pdfplumber; print(f'pdfplumber version: {pdfplumber.__version__}')"
+          uv run python -c "import pdfplumber; print(f'pdfplumber version: {pdfplumber.__version__}')"
 
       - name: Download NLTK data
         run: |
-          python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('punkt_tab')"
+          uv run python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('punkt_tab')"
 
       - name: Run regular tests
         run: |
           pkill -f "tika" > /dev/null 2>&1 || true
-          pytest tests/
+          uv run pytest tests/
 
       - name: Run PDF ingestor tests with Tika
         run: |
@@ -99,7 +86,7 @@ jobs:
           done
           
           # Run tests with better error handling
-          if ! PYTHONPATH=. poetry run python tests/run_ingestor_page_test.py 2>&1 | tee test-output.log; then
+          if ! PYTHONPATH=. uv run python tests/run_ingestor_page_test.py 2>&1 | tee test-output.log; then
             echo "Tests failed. Displaying logs:"
             echo "=== Tika Startup Logs ==="
             cat tika-startup.log || true
