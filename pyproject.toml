@@ -17,7 +17,7 @@ dependencies = [
   "numpy>=1.24.4",
   "pandas>=1.2.4",
   "python-magic>=0.4.22",
-  "symspellpy>=6.7.0",
+  "symspellpy==6.7.0",
   "tika>=2.6.0",
   "tqdm>=4.67.1",
   "unidecode>=1.4.0",
@@ -44,9 +44,7 @@ build-backend = "hatchling.build"
 packages = ["nlm_ingestor"]
 
 [tool.hatch.build]
-include = [
-  "nlm_ingestor/**/*.txt",
-]
+include = ["nlm_ingestor/**/*.txt"]
 
 [tool.black]
 target-version = ['py311']
