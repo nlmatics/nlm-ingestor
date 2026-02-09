@@ -29,7 +29,7 @@ RUN mkdir -p /${APP_HOME}/whl
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY whl/*.whl ${APP_HOME}/whl/
 COPY pyproject.toml uv.lock README.md ./
-RUN uv sync --frozen
+RUN uv sync 
 
 RUN apt-get update && apt-get install -y libmagic1 && rm -rf /var/lib/apt/lists/*
 
