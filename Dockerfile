@@ -25,15 +25,21 @@ RUN apt-get install unzip -y && \
   apt-get install git -y && \
   apt-get autoremove -y
 WORKDIR ${APP_HOME}
+RUN mkdir -p /${APP_HOME}/whl
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY whl/*.whl ${APP_HOME}/whl/
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --frozen
+
+RUN apt-get update && apt-get install -y libmagic1 && rm -rf /var/lib/apt/lists/*
+
 COPY . ./
-RUN pip install --upgrade pip setuptools
-RUN apt-get install -y libmagic1
+
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
-RUN pip install -r requirements.txt
-RUN python -m nltk.downloader -d /usr/share/nltk_data stopwords
-RUN python -m nltk.downloader -d /usr/share/nltk_data punkt
-RUN python -m nltk.downloader -d /usr/share/nltk_data punkt_tab
-RUN python -c "import tiktoken; tiktoken.get_encoding(\"cl100k_base\")"
+RUN uv run python -m nltk.downloader -d /usr/share/nltk_data stopwords
+RUN uv run python -m nltk.downloader -d /usr/share/nltk_data punkt
+RUN uv run python -m nltk.downloader -d /usr/share/nltk_data punkt_tab
+RUN uv run python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
 RUN chmod +x run.sh
 EXPOSE 5001
 CMD ./run.sh

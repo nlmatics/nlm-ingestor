@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # Python dependencies (UV)
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
+    labels:
+      - "dependencies"
+      - "python"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      github-actions-dependencies:
+        patterns:
+          - "*"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
