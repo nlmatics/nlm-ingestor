@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:experimental
-FROM python:3.11-bookworm
+FROM python:3.11-trixie
 
 # Update and upgrade system packages to get the latest security fixes
 RUN apt-get update && apt-get upgrade -y && \
